@@ -1,0 +1,277 @@
+survey-sphere/
+├── survey-sphere.php v                    # Главный файл плагина 
+├── uninstall.php     v                   # Полная очистка при удалении
+├── composer.json     v                   # PSR-4 автозагрузка
+├── package.json                         # Для сборки фронтенда
+├── webpack.config.js                    # Сборка React в админке
+├── README.md
+│
+├── src/                                 # PHP код (PSR-4)
+│   ├── Core/
+│   │   ├── Plugin.php  v                 # Ядро, инициализация всех компонентов
+│   │   ├── Container.php v               # DI контейнер (PSR-11)
+│   │   ├── Activator.php  v              # Активация: создание таблиц, ролей
+│   │   ├── Deactivator.php  v            # Деактивация: очистка кэша
+│   │   └── Hooks.php                    # Менеджер WordPress хуков
+│   │
+│   ├── Database/                        # Работа с БД
+│   │   ├── Schema/
+│   │   │   ├── Manager.php  v            # Управление схемой БД
+│   │   │   ├── SurveyTable.php  v        # Схема таблицы surveys
+│   │   │   ├── SegmentTable.php  v       # Схема таблицы segments
+│   │   │   ├── QuestionTable.php  v      # Схема таблицы questions
+│   │   │   ├── OptionTable.php   v       # Схема таблицы options
+│   │   │   ├── AttemptTable.php  v       # Схема таблицы attempts
+│   │   │   ├── AnswerTable.php  v        # Схема таблицы answers
+│   │   │   ├── SurveyQuestionTable.php  v        # Схема связи вопорсов к несколькои опросникам
+│   │   │   └── RespondentTable.php v     # Схема таблицы respondents
+│   │   │
+│   │   ├── Models/                      # Модели данных (DTO + логика)
+│   │   │   ├── Survey.php   v
+│   │   │   ├── Segment.php
+│   │   │   ├── Question.php v
+│   │   │   ├── Option.php  v
+│   │   │   ├── Attempt.php v 
+│   │   │   ├── Answer.php  v
+│   │   │   └── Respondent.php v
+│   │   │
+│   │   ├── Repositories/                # Репозитории (CRUD операции)
+│   │   │   ├── SurveyRepository.php   v
+│   │   │   ├── SegmentRepository.php
+│   │   │   ├── QuestionRepository.php  v
+│   │   │   ├── OptionRepository.php    v
+│   │   │   ├── AttemptRepository.php v
+│   │   │   ├── AnswerRepository.php v
+│   │   │   ├── SurveyQuestionRepository.php v
+│   │   │   └── RespondentRepository.php v
+│   │   │
+│   │   └── QueryBuilders/               # Сложные запросы
+│   │       ├── SurveyQueryBuilder.php
+│   │       └── ResultQueryBuilder.php
+│   │
+│   ├── Admin/                           # Административная часть
+│   │   ├── AJAX/
+│   │       ├── GetQuestionsHandler.php v
+│   │       ├── SaveQuestionHandler.php v
+│   │       ├── SaveOptionHandler.php v
+│   │       ├── DeleteQuestionHandler.php v
+│   │       ├── DeleteOptionHandler.php v
+│   │       ├── UpdateChartTypeHandler.php v
+│   │       ├── AttachQuestionHandler.php v
+│   │   ├── Menu/
+│   │   │   ├── AdminMenu.php     v       # Регистрация страниц в меню
+│   │   │   └── SubmenuPages.php         # Подстраницы (опросы, настройки)
+│   │   │
+│   │   ├── Controllers/                 # Контроллеры для админки
+│   │   │   ├── SurveyController.php  v   # CRUD опросов
+│   │   │   ├── QuestionController.php   # Управление вопросами (AJAX)
+│   │   │   ├── SegmentController.php    # Управление сегментами (AJAX)
+│   │   │   ├── SettingsController.php   # Настройки плагина
+│   │   │   └── AnalyticsController.php  # Статистика прохождений
+│   │   │
+│   │   ├── API/                         # REST API для React админки
+│   │   │   ├── Routes/
+│   │   │   │   ├── SurveyRoutes.php     # /wp-json/survey-sphere/v1/surveys
+│   │   │   │   ├── QuestionRoutes.php   # /wp-json/survey-sphere/v1/questions
+│   │   │   │   └── ResultRoutes.php     # /wp-json/survey-sphere/v1/results
+│   │   │   │
+│   │   │   ├── Controllers/
+│   │   │   │   ├── RestSurveyController.php
+│   │   │   │   ├── RestQuestionController.php
+│   │   │   │   └── RestResultController.php
+│   │   │   │
+│   │   │   └── Middleware/
+│   │   │       ├── AuthMiddleware.php   # Проверка nonce, капабилити
+│   │   │       └── ValidationMiddleware.php
+│   │   │
+│   │   ├── Assets/                      # Регистрация ассетов
+│   │   │   ├── AdminAssets.php    v      # CSS/JS для админки
+│   │   │   └── EditorAssets.php         # Для React редактора опросов
+│   │   │
+│   │   └── Views/                       # PHP шаблоны админки
+│   │       ├── surveys/
+│   │       │   ├── list.php    v         # Список всех опросов
+│   │       │   ├── create.php   v        # Создание нового
+│   │       │   └── edit.php    v         # React корень для редактора
+│   │       ├── settings/
+│   │       │   └── general.php
+│   │       └── analytics/
+│   │           └── dashboard.php
+│   │
+│   ├── Frontend/                        # Публичная часть
+│   │   ├── Shortcodes/
+│   │   │   ├── SurveyShortcode.php   v   # [survey_sphere id="X" chart="polar"]
+│   │   │   ├── ResultsShortcode.php     # [survey_results id="X"]
+│   │   │   └── SurveyWidget.php         # Виджет для сайдбара
+│   │   │
+│   │   ├── Controllers/
+│   │   │   ├── SurveyController.php     # Отображение опроса
+│   │   │   ├── AttemptController.php    # Обработка ответов
+│   │   │   └── EmailController.php      # Отправка результатов
+│   │   │
+│   │   ├── AJAX/
+│   │   │   ├── SubmitAttemptHandler.php v # Обработка AJAX запроса
+│   │   │   ├── SendEmailHandler.php     # Отправка на почту
+│   │   │   └── LoadChartHandler.php     # Асинхронная загрузка графика
+│   │   │
+│   │   ├── Charts/                      # Генераторы графиков
+│   │   │   ├── ChartFactory.php         # Фабрика типов графиков
+│   │   │   ├── PolarAreaChart.php       # Генератор данных для PolarArea
+│   │   │   ├── RadarChart.php           # Генератор для Radar
+│   │   │   ├── BarChart.php             # Генератор для Bar
+│   │   │   └── DoughnutChart.php        # Генератор для Doughnut
+│   │   │
+│   │   ├── Calculators/                 # Расчет результатов
+│   │   │   ├── ScoreCalculator.php      # Подсчет баллов по сегментам
+│   │   │   ├── Normalizer.php           # Нормализация в проценты
+│   │   │   └── RecommendationEngine.php # Генерация рекомендаций
+│   │   │
+│   │   ├── Email/
+│   │   │   ├── EmailService.php         # Сервис отправки писем
+│   │   │   ├── TemplateRenderer.php     # Рендеринг HTML писем
+│   │   │   └── Templates/               # Шаблоны писем
+│   │   │       ├── results.php
+│   │   │       └── recommendations.php
+│   │   │
+│   │   ├── Assets/
+│   │   │   ├── FrontendAssets.php       # CSS/JS для фронтенда
+│   │   │   └── ChartAssets.php          # Chart.js и зависимости
+│   │   │
+│   │   └── Views/                       # Шаблоны для фронтенда
+│   │       ├── survey/    
+│   │       │   ├── wrapper.php   v       # Обертка опроса
+│   │       │   ├── question.php         # Отображение вопроса
+│   │       │   └── navigation.php       # Кнопки навигации
+│   │       ├── results/
+│   │       │   ├── chart-container.php  # Контейнер для графика
+│   │       │   ├── summary.php          # Текстовая сводка
+│   │       │   └── actions.php          # Кнопки действий
+│   │       └── email/
+│   │           └── form.php             # Форма для email
+│   │
+│   ├── Services/                        # Бизнес-логика
+│   │   ├── SurveyService.php    v        # Управление опросами
+│   │   ├── AttemptService.php           # Работа с попытками
+│   │   ├── ScoringService.php           # Система подсчета баллов
+│   │   ├── ExportService.php            # Экспорт в CSV/PDF
+│   │   └── NotificationService.php      # Уведомления админу
+│   │
+│   ├── Security/                        # Безопасность
+│   │   ├── NonceManager.php   v          # Управление nonce
+│   │   ├── InputSanitizer.php  v         # Санитизация ввода
+│   │   ├── CapabilityManager.php  v      # Управление правами
+│   │   ├── RateLimiter.php              # Защита от брутфорса
+│   │   └── SQLInjectionPrevention.php   # $wpdb подготовленные запросы
+│   │
+│   ├── Validators/                      # Валидация данных
+│   │   ├── SurveyValidator.php
+│   │   ├── QuestionValidator.php
+│   │   └── EmailValidator.php
+│   │
+│   ├── Helpers/                         # Вспомогательные функции
+│   │   ├── ArrayHelper.php
+│   │   ├── StringHelper.php
+│   │   ├── DateHelper.php
+│   │   └── DebugHelper.php
+│   │
+│   └── Exceptions/                      # Кастомные исключения
+│       ├── ContainerException.php v
+│       ├── SurveyException.php
+│       ├── ValidationException.php v
+│       └── DatabaseException.php  v
+│
+├── assets/                              # Статические файлы
+│   ├── admin/
+│   │   ├── css/
+│   │   │   ├── admin.css v
+│   │   │   └── editor.css
+│   │   ├── js/
+│   │   │   ├── survey-editor.js v                # Собранный React
+│   │   │   ├── admin.js   v              # Для страниц настроек
+│   │   │   └── vendor/                  # Vendor скрипты
+│   │   └── img/
+│   │
+│   ├── frontend/
+│   │   ├── css/
+│   │   │   ├── survey.css v
+│   │   │   └── themes/
+│   │   │       ├── default.css
+│   │   │       └── dark.css
+│   │   ├── js/
+│   │   │   ├── survey.js       v         # Логика опроса
+│   │   │   ├── chart-renderer.js        # Отрисовка графиков
+│   │   │   └── vendor/
+│   │   │       └── chart.4.4.0.min.js
+│   │   └── img/
+│   │
+│   └── shared/                          # Общие ресурсы
+│       ├── fonts/
+│       └── icons/
+│
+├── react-src/                           # Исходники React для админки
+│   ├── index.tsx                         # Точка входа
+│   ├── App.tsx
+│   ├── components/
+│   │   ├── SurveyBuilder/
+│   │   │   ├── SurveyEditor.tsx         # Главный редактор
+│   │   │   ├── SegmentManager.tsx       # Управление сегментами
+│   │   │   ├── QuestionList.tsx         # Список вопросов
+│   │   │   ├── QuestionEditor.tsx       # Редактор вопроса
+│   │   │   ├── OptionEditor.tsx         # Редактор вариантов
+│   │   │   └── ChartSelector.tsx        # Выбор типа графика
+│   │   ├── Common/
+│   │   │   ├── Button.tsx
+│   │   │   ├── Modal.tsx
+│   │   │   └── ColorPicker.tsx
+│   │   └── Analytics/
+│   │       └── ResultsDashboard.tsx
+│   ├── hooks/
+│   │   ├── useSurveyData.js
+│   │   └── useApi.js
+│   ├── services/
+│   │   └── api.js                       # Клиент для REST API
+│   └── styles/
+│       └── editor.scss
+│
+├── templates/                           # Переопределяемые шаблоны
+│   ├── survey-sphere/
+│   │   ├── single-survey.php            # Одиночный опрос
+│   │   ├── archive-survey.php           # Архив опросов
+│   │   └── email/
+│   │       └── results-template.php
+│   └── README.md                        # Инструкция по переопределению
+│
+├── languages/                           # Локализация
+│   ├── survey-sphere.pot
+│   ├── survey-sphere-ru_RU.po
+│   └── survey-sphere-ru_RU.mo
+│
+├── tests/                               # Тесты
+│   ├── Unit/
+│   │   ├── Calculators/
+│   │   │   └── ScoreCalculatorTest.php
+│   │   ├── Validators/
+│   │   │   └── EmailValidatorTest.php
+│   │   └── Models/
+│   │       └── SurveyTest.php
+│   ├── Integration/
+│   │   ├── Database/
+│   │   │   └── RepositoryTest.php
+│   │   └── API/
+│   │       └── RestApiTest.php
+│   └── bootstrap.php
+│
+├── docs/                                # Документация
+│   ├── api.md
+│   ├── hooks.md                         # Доступные фильтры и экшены
+│   ├── shortcodes.md
+│   └── customization.md
+│
+├── vendor/                              # Composer зависимости
+├── node_modules/                        # NPM зависимости
+├── .gitignore      v
+├── .editorconfig
+├── phpcs.xml                            # WordPress Coding Standards
+├── phpstan.neon                         # Статический анализ
+├── phpunit.xml                          # Конфигурация PHPUnit
+└── LICENSE

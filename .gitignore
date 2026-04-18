@@ -1,0 +1,13 @@
+        .gitignore
+        arc.txt
+        assets/
+        composer.json
+        composer.lock
+        phpcs.xml
+        phpunit.xml
+        react-src/
+        src/
+        survey-sphere.php
+        templates/
+        uninstall.php
+        vendor/
