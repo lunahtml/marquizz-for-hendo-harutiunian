@@ -167,4 +167,17 @@ final class SurveyQuestionRepository
             )
         );
     }
+
+    public function getSegmentForQuestion(int $surveyId, int $questionId): ?int
+    {
+        global $wpdb;
+        
+        $result = $wpdb->get_var($wpdb->prepare(
+            "SELECT segment_id FROM {$this->table} WHERE survey_id = %d AND question_id = %d",
+            $surveyId,
+            $questionId
+        ));
+        
+        return $result !== null ? (int) $result : null;
+    }
 }

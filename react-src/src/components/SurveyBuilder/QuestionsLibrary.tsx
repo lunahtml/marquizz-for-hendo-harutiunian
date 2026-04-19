@@ -24,7 +24,6 @@ const QuestionsLibrary: React.FC<Props> = ({ surveyId, onAddQuestion }) => {
                 credentials: 'same-origin'
             });
             const data = await response.json();
-            console.log('Loaded questions:', data);
             setQuestions(data.questions || []);
         } catch (error) {
             console.error('Failed to load questions:', error);
@@ -50,13 +49,10 @@ const QuestionsLibrary: React.FC<Props> = ({ surveyId, onAddQuestion }) => {
             const data = await response.json();
 
             if (response.ok) {
-                // Добавляем новый вопрос в список
                 const newQuestion = data.question;
                 setQuestions([...questions, newQuestion]);
                 setNewQuestionText('');
                 setIsCreating(false);
-
-                // Автоматически добавляем вопрос в опрос
                 onAddQuestion(newQuestion);
             } else {
                 alert('Failed to create question: ' + (data.message || 'Unknown error'));
@@ -72,7 +68,6 @@ const QuestionsLibrary: React.FC<Props> = ({ surveyId, onAddQuestion }) => {
     );
 
     const handleAddClick = (question: Question) => {
-        console.log('Adding question:', question);
         onAddQuestion(question);
     };
 
@@ -103,19 +98,10 @@ const QuestionsLibrary: React.FC<Props> = ({ surveyId, onAddQuestion }) => {
                         autoFocus
                     />
                     <div className="create-question-actions">
-                        <button
-                            className="button button-primary"
-                            onClick={handleCreateQuestion}
-                        >
+                        <button className="button button-primary" onClick={handleCreateQuestion}>
                             Save
                         </button>
-                        <button
-                            className="button"
-                            onClick={() => {
-                                setIsCreating(false);
-                                setNewQuestionText('');
-                            }}
-                        >
+                        <button className="button" onClick={() => { setIsCreating(false); setNewQuestionText(''); }}>
                             Cancel
                         </button>
                     </div>
@@ -131,10 +117,7 @@ const QuestionsLibrary: React.FC<Props> = ({ surveyId, onAddQuestion }) => {
                             {filteredQuestions.map(question => (
                                 <div key={question.id} className="library-question-item">
                                     <span className="question-text">{question.text}</span>
-                                    <button
-                                        className="button button-small"
-                                        onClick={() => handleAddClick(question)}
-                                    >
+                                    <button className="button button-small" onClick={() => handleAddClick(question)}>
                                         Add
                                     </button>
                                 </div>
@@ -142,10 +125,7 @@ const QuestionsLibrary: React.FC<Props> = ({ surveyId, onAddQuestion }) => {
                         </div>
                     )}
 
-                    <button
-                        className="button button-primary create-question-btn"
-                        onClick={() => setIsCreating(true)}
-                    >
+                    <button className="button button-primary create-question-btn" onClick={() => setIsCreating(true)}>
                         + Create New Question
                     </button>
                 </>

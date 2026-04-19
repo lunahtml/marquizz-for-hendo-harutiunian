@@ -2,6 +2,8 @@
 vendor/
 composer.lock
 arc.txt
+arc-old.txt
+arc-oldnew.txt
 # Node
 node_modules/
 react-src/node_modules/

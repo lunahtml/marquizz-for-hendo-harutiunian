@@ -11,6 +11,8 @@ use WP_Error;
 use SurveySphere\Database\Repositories\QuestionRepository;
 use SurveySphere\Database\Repositories\OptionRepository;
 use SurveySphere\Database\Repositories\SurveyRepository;
+use SurveySphere\Database\Repositories\SurveyQuestionRepository;
+use SurveySphere\Database\Repositories\SegmentRepository;
 
 final class RestQuestionController extends WP_REST_Controller
 {
@@ -33,6 +35,18 @@ final class RestQuestionController extends WP_REST_Controller
                         'type' => 'string',
                         'sanitize_callback' => 'sanitize_text_field',
                     ],
+                    'with_stats' => [
+                        'type' => 'string',
+                        'sanitize_callback' => 'sanitize_text_field',
+                    ],
+                    'segment_id' => [
+                        'type' => 'string',
+                        'sanitize_callback' => 'sanitize_text_field',
+                    ],
+                    'survey_id' => [
+                        'type' => 'string',
+                        'sanitize_callback' => 'sanitize_text_field',
+                    ],
                 ],
             ],
             [
@@ -42,12 +56,17 @@ final class RestQuestionController extends WP_REST_Controller
             ],
         ]);
         
-        // PUT /questions/{id}
+        // PUT, DELETE /questions/{id}
         register_rest_route($this->namespace, '/' . $this->rest_base . '/(?P<id>[\w-]+)', [
             [
                 'methods' => 'PUT',
                 'callback' => [$this, 'update_item'],
                 'permission_callback' => [$this, 'update_item_permissions_check'],
+            ],
+            [
+                'methods' => 'DELETE',
+                'callback' => [$this, 'delete_item'],
+                'permission_callback' => [$this, 'delete_item_permissions_check'],
             ],
         ]);
     }
@@ -60,6 +79,17 @@ final class RestQuestionController extends WP_REST_Controller
     public function get_items($request): WP_REST_Response|WP_Error
     {
         $excludeSurveyPublicId = $request->get_param('exclude_survey_id');
+        $withStats = $request->get_param('with_stats') === '1';
+        $filterSegmentPublicId = $request->get_param('segment_id');
+        $filterSurveyPublicId = $request->get_param('survey_id');
+        
+        // Преобразуем public_id в числовые ID для фильтрации
+        $filterSurveyId = null;
+        if ($filterSurveyPublicId) {
+            $surveyRepo = new SurveyRepository();
+            $survey = $surveyRepo->findByPublicId($filterSurveyPublicId);
+            $filterSurveyId = $survey ? $survey->id : null;
+        }
         
         $excludeSurveyId = null;
         if ($excludeSurveyPublicId) {
@@ -74,11 +104,16 @@ final class RestQuestionController extends WP_REST_Controller
         $questions = $questionRepo->findAll($excludeSurveyId);
         
         $optionRepo = new OptionRepository();
+        $surveyQuestionRepo = new SurveyQuestionRepository();
+        $segmentRepo = new SegmentRepository();
+        $surveyRepo = new SurveyRepository();
+        
         $data = [];
         
         foreach ($questions as $question) {
             $options = $optionRepo->findByQuestionId($question->id);
-            $data[] = [
+            
+            $item = [
                 'id' => $question->publicId,
                 'text' => $question->text,
                 'options' => array_map(function($opt) {
@@ -88,7 +123,54 @@ final class RestQuestionController extends WP_REST_Controller
                         'score' => $opt->score,
                     ];
                 }, $options),
+                'optionsCount' => count($options),
             ];
+            
+            if ($withStats) {
+                // Получаем опросы, в которых используется вопрос
+                $surveyIds = $surveyQuestionRepo->getSurveyIdsForQuestion($question->id);
+                $usedInSurveys = count($surveyIds);
+                
+                $item['usedInSurveys'] = $usedInSurveys;
+                $item['surveyNames'] = [];
+                $item['surveyIds'] = $surveyIds;
+                
+                if ($usedInSurveys > 0) {
+                    foreach ($surveyIds as $sid) {
+                        $s = $surveyRepo->findById((int) $sid);
+                        if ($s) {
+                            $item['surveyNames'][] = $s->name;
+                        }
+                    }
+                }
+                
+                // Получаем сегмент (если вопрос привязан к сегменту в каком-либо опросе)
+                $segmentId = null;
+                foreach ($surveyIds as $sid) {
+                    $seg = $surveyQuestionRepo->getSegmentForQuestion((int) $sid, $question->id);
+                    if ($seg) {
+                        $segmentId = $seg;
+                        break;
+                    }
+                }
+                if ($segmentId) {
+                    $segment = $segmentRepo->findById($segmentId);
+                    if ($segment) {
+                        $item['segmentId'] = $segment->publicId;
+                        $item['segmentName'] = $segment->name;
+                    }
+                }
+            }
+            
+            // Применяем фильтры
+            if ($filterSegmentPublicId && (!isset($item['segmentId']) || $item['segmentId'] !== $filterSegmentPublicId)) {
+                continue;
+            }
+            if ($filterSurveyId && (!isset($item['surveyIds']) || !in_array($filterSurveyId, $item['surveyIds']))) {
+                continue;
+            }
+            
+            $data[] = $item;
         }
         
         return new WP_REST_Response(['questions' => $data], 200);
@@ -146,5 +228,26 @@ final class RestQuestionController extends WP_REST_Controller
         }
         
         return new WP_REST_Response(['message' => 'Question updated'], 200);
+    }
+    
+    public function delete_item_permissions_check($request): bool
+    {
+        return current_user_can('manage_survey_sphere');
+    }
+    
+    public function delete_item($request): WP_REST_Response|WP_Error
+    {
+        $questionPublicId = $request->get_param('id');
+        
+        $questionRepo = new QuestionRepository();
+        $question = $questionRepo->findByPublicId($questionPublicId);
+        
+        if (!$question) {
+            return new WP_Error('question_not_found', 'Question not found', ['status' => 404]);
+        }
+        
+        $questionRepo->delete($question->id);
+        
+        return new WP_REST_Response(['message' => 'Question deleted'], 200);
     }
 }

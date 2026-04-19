@@ -11,8 +11,6 @@ final class Activator
 {
     public static function activate(): void
     {
-        error_log('Activator::activate() called');
-        
         // Check PHP version
         if (version_compare(PHP_VERSION, '8.0', '<')) {
             deactivate_plugins(SURVEY_SPHERE_BASENAME);
@@ -21,11 +19,9 @@ final class Activator
         
         // Create database tables
         Manager::createAllTables();
-        error_log('Tables created');
         
         // Add capabilities
         CapabilityManager::addCapabilities();
-        error_log('Capabilities added');
         
         // Set version
         update_option('survey_sphere_version', SURVEY_SPHERE_VERSION);
@@ -42,7 +38,5 @@ final class Activator
         
         // Flush rewrite rules
         flush_rewrite_rules();
-        
-        error_log('Activator::activate() completed');
     }
 }

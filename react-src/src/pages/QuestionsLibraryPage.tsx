@@ -10,6 +10,7 @@ interface QuestionWithStats extends Question {
     optionsCount: number;
     usedInSurveys: number;
     surveyNames: string[];
+    surveyIds?: number[];  // ← добавить для фильтрации
 }
 
 const QuestionsLibraryPage: React.FC = () => {
@@ -85,10 +86,23 @@ const QuestionsLibraryPage: React.FC = () => {
         }
     };
 
+    // ФИЛЬТРАЦИЯ
     const filteredQuestions = questions.filter(q => {
         const matchesSearch = q.text.toLowerCase().includes(search.toLowerCase());
-        // TODO: добавить фильтрацию по сегменту и опросу когда API будет готов
-        return matchesSearch;
+
+        // Фильтр по сегменту
+        const matchesSegment = !filterSegment || q.segmentId === filterSegment;
+
+        // Фильтр по опросу
+        let matchesSurvey = true;
+        if (filterSurvey) {
+            const survey = surveys.find(s => s.id === filterSurvey);
+            if (survey) {
+                matchesSurvey = q.surveyNames?.includes(survey.name) || false;
+            }
+        }
+
+        return matchesSearch && matchesSegment && matchesSurvey;
     });
 
     const columns = [
