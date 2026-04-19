@@ -142,4 +142,31 @@ final class QuestionRepository
         
         return $result > 0;
     }
+
+    public function update(int $id, array $data): bool
+{
+    global $wpdb;
+    
+    $updateData = [];
+    $formats = [];
+    
+    if (isset($data['text'])) {
+        $updateData['text'] = sanitize_textarea_field($data['text']);
+        $formats[] = '%s';
+    }
+    
+    if (empty($updateData)) {
+        return false;
+    }
+    
+    $result = $wpdb->update(
+        $this->table,
+        $updateData,
+        ['id' => $id],
+        $formats,
+        ['%d']
+    );
+    
+    return $result !== false;
+}
 }

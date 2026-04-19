@@ -66,11 +66,6 @@ final class Plugin
         add_shortcode('survey_sphere', [new SurveyShortcode($this->container), 'render']);
     }
 
-    // public function registerRestRoutes(): void
-    // {
-    //     $segmentController = new RestSegmentController();
-    //     $segmentController->register_routes();
-    // }
     public function registerRestRoutes(): void
     {
         $segmentController = new \SurveySphere\Admin\API\Controllers\RestSegmentController();
@@ -84,6 +79,9 @@ final class Plugin
 
         $surveyController = new \SurveySphere\Admin\API\Controllers\RestSurveyController();
         $surveyController->register_routes();
+
+        $optionController = new \SurveySphere\Admin\API\Controllers\RestOptionController();
+        $optionController->register_routes();
     }
     public function init(): void
     {

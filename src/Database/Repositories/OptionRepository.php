@@ -95,7 +95,37 @@ final class OptionRepository
     
     return $row ? Option::fromArray($row) : null;
 }
+public function update(int $id, array $data): bool
+{
+    global $wpdb;
     
+    $updateData = [];
+    $formats = [];
+    
+    if (isset($data['text'])) {
+        $updateData['text'] = sanitize_text_field($data['text']);
+        $formats[] = '%s';
+    }
+    
+    if (isset($data['score'])) {
+        $updateData['score'] = (float) $data['score'];
+        $formats[] = '%f';
+    }
+    
+    if (empty($updateData)) {
+        return false;
+    }
+    
+    $result = $wpdb->update(
+        $this->table,
+        $updateData,
+        ['id' => $id],
+        $formats,
+        ['%d']
+    );
+    
+    return $result !== false;
+}
     public function delete(int $id): bool
     {
         global $wpdb;

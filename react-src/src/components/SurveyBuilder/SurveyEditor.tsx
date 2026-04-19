@@ -9,11 +9,26 @@ const SurveyEditor: React.FC = () => {
     const surveyId = document.getElementById('survey-sphere-root')?.dataset.surveyId || '';
     const [segments, setSegments] = useState<Segment[]>([]);
     const [surveyQuestions, setSurveyQuestions] = useState<Question[]>([]);
+    const [chartType, setChartType] = useState<string>('polarArea');
+    const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
 
     useEffect(() => {
+        loadSurvey();
         loadSegments();
         loadSurveyQuestions();
     }, [surveyId]);
+
+    const loadSurvey = async () => {
+        try {
+            const response = await fetch(`/chess/wp-json/survey-sphere/v1/surveys/${surveyId}`, {
+                credentials: 'same-origin'
+            });
+            const data = await response.json();
+            setChartType(data.chartType || 'polarArea');
+        } catch (error) {
+            console.error('Failed to load survey:', error);
+        }
+    };
 
     const loadSegments = async () => {
         try {
@@ -39,6 +54,22 @@ const SurveyEditor: React.FC = () => {
         }
     };
 
+    const handleChartTypeChange = async (newType: string) => {
+        try {
+            const response = await fetch(`/chess/wp-json/survey-sphere/v1/surveys/${surveyId}`, {
+                method: 'PUT',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chart_type: newType })
+            });
+            if (response.ok) {
+                setChartType(newType);
+            }
+        } catch (error) {
+            console.error('Failed to update chart type:', error);
+        }
+    };
+
     const handleAddQuestion = async (question: Question) => {
         try {
             const response = await fetch(`/chess/wp-json/survey-sphere/v1/surveys/${surveyId}/questions`, {
@@ -58,8 +89,6 @@ const SurveyEditor: React.FC = () => {
     };
 
     const handleDropQuestion = async (questionId: string, segmentId: string | null) => {
-        console.log('Dropping question:', questionId, 'to segment:', segmentId);
-
         try {
             const response = await fetch(`/chess/wp-json/survey-sphere/v1/surveys/${surveyId}/questions/${questionId}`, {
                 method: 'PUT',
@@ -68,25 +97,72 @@ const SurveyEditor: React.FC = () => {
                 body: JSON.stringify({ segment_id: segmentId })
             });
 
-            const data = await response.json();
-            console.log('Update response:', data);
-
             if (response.ok) {
-                setSurveyQuestions(prev => {
-                    const updated = prev.map(q =>
-                        q.id === questionId ? { ...q, segmentId } : q
-                    );
-                    console.log('Updated questions:', updated);
-                    return updated;
-                });
+                setSurveyQuestions(prev =>
+                    prev.map(q => q.id === questionId ? { ...q, segmentId } : q)
+                );
             }
         } catch (error) {
             console.error('Failed to update question segment:', error);
         }
     };
 
+    const handleSaveQuestion = async (question: Question) => {
+        try {
+            // Сохраняем текст вопроса
+            await fetch(`/chess/wp-json/survey-sphere/v1/questions/${question.id}`, {
+                method: 'PUT',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: question.text })
+            });
+
+            // Сохраняем варианты ответов
+            for (const opt of question.options) {
+                if (opt.id) {
+                    await fetch(`/chess/wp-json/survey-sphere/v1/options/${opt.id}`, {
+                        method: 'PUT',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: opt.text, score: opt.score })
+                    });
+                } else {
+                    const response = await fetch(`/chess/wp-json/survey-sphere/v1/questions/${question.id}/options`, {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ text: opt.text, score: opt.score })
+                    });
+                    const data = await response.json();
+                    opt.id = data.option.id;
+                }
+            }
+
+            setSurveyQuestions(prev =>
+                prev.map(q => q.id === question.id ? question : q)
+            );
+            setEditingQuestion(null);
+        } catch (error) {
+            console.error('Failed to save question:', error);
+        }
+    };
+
     return (
         <div className="survey-sphere-app">
+            <div className="survey-settings">
+                <label htmlFor="chart-type-select"><strong>Chart Type:</strong></label>
+                <select
+                    id="chart-type-select"
+                    value={chartType}
+                    onChange={(e) => handleChartTypeChange(e.target.value)}
+                >
+                    <option value="polarArea">Polar Area Chart</option>
+                    <option value="radar">Radar Chart</option>
+                    <option value="doughnut">Doughnut Chart</option>
+                    <option value="bar">Bar Chart</option>
+                </select>
+            </div>
+
             <div className="editor-layout">
                 <div className="editor-sidebar">
                     <SegmentsPanel
@@ -106,7 +182,82 @@ const SurveyEditor: React.FC = () => {
                         segments={segments}
                         surveyQuestions={surveyQuestions}
                         onDropQuestion={handleDropQuestion}
+                        onEditQuestion={setEditingQuestion}
                     />
+                </div>
+            </div>
+
+            {editingQuestion && (
+                <QuestionEditor
+                    question={editingQuestion}
+                    onSave={handleSaveQuestion}
+                    onClose={() => setEditingQuestion(null)}
+                />
+            )}
+        </div>
+    );
+};
+
+// Компонент редактора вопроса
+const QuestionEditor: React.FC<{
+    question: Question;
+    onSave: (q: Question) => void;
+    onClose: () => void;
+}> = ({ question, onSave, onClose }) => {
+    const [text, setText] = useState(question.text);
+    const [options, setOptions] = useState(question.options || []);
+
+    const addOption = () => {
+        setOptions([...options, { id: '', text: '', score: 0 }]);
+    };
+
+    const updateOption = (index: number, field: string, value: string | number) => {
+        const updated = [...options];
+        updated[index] = { ...updated[index], [field]: value };
+        setOptions(updated);
+    };
+
+    const removeOption = (index: number) => {
+        setOptions(options.filter((_, i) => i !== index));
+    };
+
+    return (
+        <div className="question-editor-overlay" onClick={onClose}>
+            <div className="question-editor-modal" onClick={e => e.stopPropagation()}>
+                <h3>Edit Question</h3>
+
+                <label>Question Text</label>
+                <textarea value={text} onChange={e => setText(e.target.value)} />
+
+                <label>Options</label>
+                <div className="options-list">
+                    {options.map((opt, i) => (
+                        <div key={i} className="option-row">
+                            <input
+                                type="text"
+                                value={opt.text}
+                                placeholder="Option text"
+                                onChange={e => updateOption(i, 'text', e.target.value)}
+                            />
+                            <input
+                                type="number"
+                                value={opt.score}
+                                placeholder="Score"
+                                step="0.1"
+                                onChange={e => updateOption(i, 'score', parseFloat(e.target.value))}
+                            />
+                            <button onClick={() => removeOption(i)}>✕</button>
+                        </div>
+                    ))}
+                </div>
+
+                <button className="add-option-btn" onClick={addOption}>+ Add Option</button>
+
+                <div className="modal-actions">
+                    <button className="button button-primary" onClick={() => onSave({ ...question, text, options })}>
+                        Save
+                    </button>
+                    <button className="button" onClick={onClose}>Cancel</button>
                 </div>
             </div>
         </div>

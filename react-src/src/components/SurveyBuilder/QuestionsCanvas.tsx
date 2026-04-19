@@ -6,9 +6,10 @@ interface Props {
     segments: Segment[];
     surveyQuestions: Question[];
     onDropQuestion: (questionId: string, segmentId: string | null) => void;
+    onEditQuestion: (question: Question) => void;
 }
 
-const QuestionsCanvas: React.FC<Props> = ({ segments, surveyQuestions, onDropQuestion }) => {
+const QuestionsCanvas: React.FC<Props> = ({ segments, surveyQuestions, onDropQuestion, onEditQuestion }) => {
     const [draggedQuestion, setDraggedQuestion] = useState<string | null>(null);
 
     const handleDragStart = (questionId: string) => {
@@ -26,14 +27,12 @@ const QuestionsCanvas: React.FC<Props> = ({ segments, surveyQuestions, onDropQue
         e.preventDefault();
     };
 
-    // Фильтрация с проверкой segmentId
     const uncategorizedQuestions = surveyQuestions.filter(q => !q.segmentId);
     const questionsBySegment = (segmentId: string) =>
         surveyQuestions.filter(q => q.segmentId === segmentId);
 
     return (
         <div className="questions-canvas">
-            {/* Без сегмента */}
             <div
                 className="canvas-zone no-segment"
                 onDrop={() => handleDrop(null)}
@@ -46,13 +45,13 @@ const QuestionsCanvas: React.FC<Props> = ({ segments, surveyQuestions, onDropQue
                         className="canvas-question"
                         draggable
                         onDragStart={() => handleDragStart(question.id)}
+                        onClick={() => onEditQuestion(question)}
                     >
                         {question.text}
                     </div>
                 ))}
             </div>
 
-            {/* Сегменты */}
             {segments.map(segment => (
                 <div
                     key={segment.id}
@@ -70,6 +69,7 @@ const QuestionsCanvas: React.FC<Props> = ({ segments, surveyQuestions, onDropQue
                             className="canvas-question"
                             draggable
                             onDragStart={() => handleDragStart(question.id)}
+                            onClick={() => onEditQuestion(question)}
                         >
                             {question.text}
                         </div>

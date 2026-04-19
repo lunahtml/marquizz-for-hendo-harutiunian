@@ -76,7 +76,7 @@ survey-sphere/
 │   │   │   │
 │   │   │   ├── Controllers/
 │   │   │   │   ├── RestSegmentController.php   v
-│   │   │   │   ├── RestSurveyController.php    v
+│   │   │   │   ├── RestOptionController.php    v
 │   │   │   │   ├── RestSurveyQuestionsController.php    v
 │   │   │   │   ├── RestQuestionController.php v
 │   │   │   │   └── RestResultController.php
@@ -219,7 +219,6 @@ survey-sphere/
         ├── types/
             ├── index.ts v
         ├── pages/
-        │   ├── Surveys/
         │   │   ├── SurveysList.tsx v
         │   │   ├── QuestionsLibraryPage.tsx v
         │   │ 
@@ -235,6 +234,7 @@ survey-sphere/
         │       ├── SegmentsPanel.tsx v
         │       ├── QuestionsLibrary.tsx v
         │       └── QuestionsCanvas.tsx v 
+        │       └── QuestionsEditor.tsx v 
                 └── SurveyEditor.tsx v
         ├── hooks/
         ├── services/

@@ -22,6 +22,7 @@ final class RestQuestionController extends WP_REST_Controller
     
     public function register_routes(): void
     {
+        // GET /questions
         register_rest_route($this->namespace, '/' . $this->rest_base, [
             [
                 'methods' => 'GET',
@@ -40,11 +41,20 @@ final class RestQuestionController extends WP_REST_Controller
                 'permission_callback' => [$this, 'create_item_permissions_check'],
             ],
         ]);
+        
+        // PUT /questions/{id}
+        register_rest_route($this->namespace, '/' . $this->rest_base . '/(?P<id>[\w-]+)', [
+            [
+                'methods' => 'PUT',
+                'callback' => [$this, 'update_item'],
+                'permission_callback' => [$this, 'update_item_permissions_check'],
+            ],
+        ]);
     }
     
     public function get_items_permissions_check($request): bool
     {
-        return true; // Временно
+        return true;
     }
     
     public function get_items($request): WP_REST_Response|WP_Error
@@ -106,7 +116,35 @@ final class RestQuestionController extends WP_REST_Controller
         
         return new WP_REST_Response([
             'message' => 'Question created',
-            'question' => ['id' => $question->publicId, 'text' => $question->text]
+            'question' => [
+                'id' => $question->publicId,
+                'text' => $question->text,
+                'options' => []
+            ]
         ], 201);
+    }
+
+    public function update_item_permissions_check($request): bool
+    {
+        return current_user_can('manage_survey_sphere');
+    }
+
+    public function update_item($request): WP_REST_Response|WP_Error
+    {
+        $questionPublicId = $request->get_param('id');
+        $text = $request->get_param('text');
+        
+        $questionRepo = new QuestionRepository();
+        $question = $questionRepo->findByPublicId($questionPublicId);
+        
+        if (!$question) {
+            return new WP_Error('question_not_found', 'Question not found', ['status' => 404]);
+        }
+        
+        if ($text !== null) {
+            $questionRepo->update($question->id, ['text' => sanitize_textarea_field($text)]);
+        }
+        
+        return new WP_REST_Response(['message' => 'Question updated'], 200);
     }
 }
