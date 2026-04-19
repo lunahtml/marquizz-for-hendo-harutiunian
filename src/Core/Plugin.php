@@ -81,6 +81,9 @@ final class Plugin
         
         $surveyQuestionsController = new \SurveySphere\Admin\API\Controllers\RestSurveyQuestionsController();
         $surveyQuestionsController->register_routes();
+
+        $surveyController = new \SurveySphere\Admin\API\Controllers\RestSurveyController();
+        $surveyController->register_routes();
     }
     public function init(): void
     {

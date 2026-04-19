@@ -92,4 +92,10 @@ final class SurveyController
             wp_die('Error creating survey: ' . esc_html($e->getMessage()));
         }
     }
+
+
+    public function questions(): void
+{
+    include SURVEY_SPHERE_PATH . 'src/Admin/Views/questions/library.php';
+}
 }

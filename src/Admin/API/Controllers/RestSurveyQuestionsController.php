@@ -73,9 +73,21 @@ final class RestSurveyQuestionsController extends WP_REST_Controller
         $surveyQuestionRepo = new SurveyQuestionRepository();
         $questionsWithSegments = $surveyQuestionRepo->getQuestionsWithSegments($survey->id);
         
+        // Получаем все сегменты опроса для маппинга id -> publicId
+        $segmentRepo = new \SurveySphere\Database\Repositories\SegmentRepository();
+        $allSegments = $segmentRepo->findBySurveyId($survey->id);
+        $segmentIdToPublicId = [];
+        foreach ($allSegments as $seg) {
+            $segmentIdToPublicId[$seg->id] = $seg->publicId;
+        }
+        
+        // Строим карту: question_id -> segment_public_id
         $segmentMap = [];
         foreach ($questionsWithSegments as $sq) {
-            $segmentMap[$sq->question_id] = $sq->segment_id;
+            $numericSegmentId = $sq['segment_id'];
+            $segmentMap[$sq['question_id']] = $numericSegmentId 
+                ? ($segmentIdToPublicId[$numericSegmentId] ?? null) 
+                : null;
         }
         
         $data = [];
@@ -134,7 +146,7 @@ final class RestSurveyQuestionsController extends WP_REST_Controller
     {
         $surveyPublicId = $request->get_param('survey_id');
         $questionPublicId = $request->get_param('question_id');
-        $segmentId = $request->get_param('segment_id');
+        $segmentPublicId = $request->get_param('segment_id');  // ← это public_id, а не числовой id
         
         $surveyRepo = new SurveyRepository();
         $survey = $surveyRepo->findByPublicId($surveyPublicId);
@@ -148,6 +160,16 @@ final class RestSurveyQuestionsController extends WP_REST_Controller
         
         if (!$question) {
             return new WP_Error('question_not_found', 'Question not found', ['status' => 404]);
+        }
+        
+        // Находим числовой ID сегмента по public_id
+        $segmentId = null;
+        if ($segmentPublicId && $segmentPublicId !== 'null' && $segmentPublicId !== '') {
+            $segmentRepo = new \SurveySphere\Database\Repositories\SegmentRepository();
+            $segment = $segmentRepo->findByPublicId($segmentPublicId);
+            if ($segment) {
+                $segmentId = $segment->id;
+            }
         }
         
         $surveyQuestionRepo = new SurveyQuestionRepository();

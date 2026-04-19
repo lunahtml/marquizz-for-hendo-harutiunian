@@ -52,14 +52,25 @@ final class AdminMenu
         );
         
         // Settings
-        add_submenu_page(
-            null,
-            __('Edit Survey', 'survey-sphere'),
-            __('Edit Survey', 'survey-sphere'),
-            'manage_survey_sphere',
-            'survey-sphere-edit',
-            [new SurveyController(), 'edit']
-        );
+// Questions Library (показывается в меню)
+add_submenu_page(
+    'survey-sphere',
+    __('Questions Library', 'survey-sphere'),
+    __('Questions', 'survey-sphere'),
+    'manage_survey_sphere',
+    'survey-sphere-questions',
+    [new SurveyController(), 'questions']
+);
+
+// Edit survey (скрытая)
+add_submenu_page(
+    null,
+    __('Edit Survey', 'survey-sphere'),
+    __('Edit Survey', 'survey-sphere'),
+    'manage_survey_sphere',
+    'survey-sphere-edit',
+    [new SurveyController(), 'edit']
+);
         
 
     }
