@@ -22,6 +22,8 @@ export interface Question {
     text: string;
     options: Option[];
     segmentId?: string | null;
+    segmentName?: string | null;
+    segmentColor?: string | null;
 }
 
 export interface Option {

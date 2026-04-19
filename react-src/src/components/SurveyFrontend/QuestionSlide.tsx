@@ -1,5 +1,4 @@
 //react-src/src/components/SurveyFrontend/QuestionSlide.tsx
-
 import React from 'react';
 import type { Question } from '../../types';
 
@@ -12,6 +11,19 @@ interface Props {
 const QuestionSlide: React.FC<Props> = ({ question, selectedOptionId, onAnswer }) => {
     return (
         <div className="question-slide">
+            {question.segmentName && (
+                <div
+                    className="segment-badge"
+                    style={{
+                        backgroundColor: (question.segmentColor || '#e2e8f0') + '20',
+                        color: question.segmentColor || '#64748b',
+                        border: `1px solid ${question.segmentColor || '#e2e8f0'}`
+                    }}
+                >
+                    📁 {question.segmentName}
+                </div>
+            )}
+
             <div className="question-header">
                 <h3>{question.text}</h3>
             </div>

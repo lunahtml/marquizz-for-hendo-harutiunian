@@ -19,13 +19,12 @@ const ResultsView: React.FC<Props> = ({ surveyId, questions, answers, segments, 
 
     // Вычисляем баллы по сегментам
     const calculateSegmentScores = () => {
-        const scores: Record<string, { total: number; count: number }> = {};
+        const scores: Record<string, { total: number; count: number; maxPossible: number }> = {};
 
-        // Инициализируем сегменты
         segments.forEach(seg => {
-            scores[seg.id] = { total: 0, count: 0 };
+            scores[seg.id] = { total: 0, count: 0, maxPossible: 0 };
         });
-        scores['uncategorized'] = { total: 0, count: 0 };
+        scores['uncategorized'] = { total: 0, count: 0, maxPossible: 0 };
 
         questions.forEach(question => {
             const answerId = answers[question.id];
@@ -36,6 +35,9 @@ const ResultsView: React.FC<Props> = ({ surveyId, questions, answers, segments, 
                     if (scores[segmentId]) {
                         scores[segmentId].total += option.score;
                         scores[segmentId].count += 1;
+                        // Максимально возможный балл для этого вопроса
+                        const maxScore = Math.max(...question.options.map(o => o.score));
+                        scores[segmentId].maxPossible += maxScore;
                     }
                 }
             }
@@ -46,23 +48,24 @@ const ResultsView: React.FC<Props> = ({ surveyId, questions, answers, segments, 
 
     const segmentScores = calculateSegmentScores();
 
-    // Вычисляем проценты
-    const maxPossibleScore = 10;
+    // Вычисляем проценты от максимально возможного
     const percentages: Record<string, number> = {};
     let totalPercentage = 0;
     let segmentCount = 0;
 
     segments.forEach(seg => {
         const data = segmentScores[seg.id];
-        const avg = data.count > 0 ? data.total / data.count : 0;
-        const percentage = Math.round((avg / maxPossibleScore) * 100);
-        percentages[seg.id] = percentage;
-        totalPercentage += percentage;
+        if (data && data.maxPossible > 0) {
+            const percentage = Math.round((data.total / data.maxPossible) * 100);
+            percentages[seg.id] = Math.min(100, percentage);
+        } else {
+            percentages[seg.id] = 0;
+        }
+        totalPercentage += percentages[seg.id];
         segmentCount++;
     });
 
     const overallScore = segmentCount > 0 ? Math.round(totalPercentage / segmentCount) : 0;
-
     const getLevel = (score: number) => {
         if (score <= 25) return { name: 'Критический', color: '#dc3545', description: 'Требуется немедленное вмешательство.' };
         if (score <= 50) return { name: 'Низкий', color: '#fd7e14', description: 'Присутствуют системные проблемы.' };

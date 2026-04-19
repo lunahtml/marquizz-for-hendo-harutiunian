@@ -40,13 +40,22 @@ final class SurveyShortcode
             $questionRepo = new \SurveySphere\Database\Repositories\QuestionRepository();
             $optionRepo = new \SurveySphere\Database\Repositories\OptionRepository();
             $segmentRepo = new \SurveySphere\Database\Repositories\SegmentRepository();
+            $surveyQuestionRepo = new \SurveySphere\Database\Repositories\SurveyQuestionRepository();
             
             $questions = $questionRepo->findBySurveyId($survey->id);
             $segments = $segmentRepo->findBySurveyId($survey->id);
-            $optionsByQuestion = [];
             
-            foreach ($questions as $question) {
-                $optionsByQuestion[$question->id] = $optionRepo->findByQuestionId($question->id);
+            // Получаем связи вопросов с сегментами
+            $questionsWithSegments = $surveyQuestionRepo->getQuestionsWithSegments($survey->id);
+            $segmentMap = [];
+            foreach ($questionsWithSegments as $sq) {
+                $segmentMap[$sq['question_id']] = $sq['segment_id'];
+            }
+            
+            // Карта сегментов для быстрого доступа
+            $segmentById = [];
+            foreach ($segments as $seg) {
+                $segmentById[$seg->id] = $seg;
             }
             
             wp_enqueue_style(
@@ -71,17 +80,26 @@ final class SurveyShortcode
                     'description' => $survey->description,
                     'chartType' => $survey->chartType,
                 ],
-                'questions' => array_map(function($q) use ($optionRepo) {
-                    $segmentId = $q->segmentId ?? null;
+                'questions' => array_map(function($q) use ($optionRepo, $segmentMap, $segmentById) {
+                    $segmentId = $segmentMap[$q->id] ?? null;
+                    $segmentName = $segmentId && isset($segmentById[$segmentId]) 
+                        ? $segmentById[$segmentId]->name 
+                        : null;
+                    $segmentColor = $segmentId && isset($segmentById[$segmentId]) 
+                        ? $segmentById[$segmentId]->color 
+                        : null;
+                    
                     return [
                         'id' => $q->publicId,
                         'text' => $q->text,
                         'segmentId' => $segmentId,
+                        'segmentName' => $segmentName,
+                        'segmentColor' => $segmentColor,
                         'options' => array_map(function($opt) {
                             return [
                                 'id' => $opt->publicId,
                                 'text' => $opt->text,
-                                'score' => $opt->score,
+                                'score' => (float) $opt->score,
                             ];
                         }, $optionRepo->findByQuestionId($q->id)),
                     ];
@@ -96,8 +114,6 @@ final class SurveyShortcode
                 'ajaxUrl' => admin_url('admin-ajax.php'),
                 'nonce' => wp_create_nonce('survey_sphere_frontend'),
             ];
-            
- 
             
             ob_start();
             include SURVEY_SPHERE_PATH . 'src/Frontend/Views/survey/wrapper.php';
