@@ -80,30 +80,27 @@ final class SurveyShortcode
                     'description' => $survey->description,
                     'chartType' => $survey->chartType,
                 ],
-                'questions' => array_map(function($q) use ($optionRepo, $segmentMap, $segmentById) {
-                    $segmentId = $segmentMap[$q->id] ?? null;
-                    $segmentName = $segmentId && isset($segmentById[$segmentId]) 
-                        ? $segmentById[$segmentId]->name 
-                        : null;
-                    $segmentColor = $segmentId && isset($segmentById[$segmentId]) 
-                        ? $segmentById[$segmentId]->color 
-                        : null;
-                    
-                    return [
-                        'id' => $q->publicId,
-                        'text' => $q->text,
-                        'segmentId' => $segmentId,
-                        'segmentName' => $segmentName,
-                        'segmentColor' => $segmentColor,
-                        'options' => array_map(function($opt) {
-                            return [
-                                'id' => $opt->publicId,
-                                'text' => $opt->text,
-                                'score' => (float) $opt->score,
-                            ];
-                        }, $optionRepo->findByQuestionId($q->id)),
-                    ];
-                }, $questions),
+              'questions' => array_map(function($q) use ($optionRepo, $segmentMap, $segmentById) {
+    $numericSegmentId = $segmentMap[$q->id] ?? null;
+    $segment = $numericSegmentId && isset($segmentById[$numericSegmentId]) 
+        ? $segmentById[$numericSegmentId] 
+        : null;
+    
+    return [
+        'id' => $q->publicId,
+        'text' => $q->text,
+        'segmentId' => $segment ? $segment->publicId : null,  // ← публичный ID
+        'segmentName' => $segment ? $segment->name : null,
+        'segmentColor' => $segment ? $segment->color : null,
+        'options' => array_map(function($opt) {
+            return [
+                'id' => $opt->publicId,
+                'text' => $opt->text,
+                'score' => (float) $opt->score,
+            ];
+        }, $optionRepo->findByQuestionId($q->id)),
+    ];
+}, $questions),
                 'segments' => array_map(function($seg) {
                     return [
                         'id' => $seg->publicId,

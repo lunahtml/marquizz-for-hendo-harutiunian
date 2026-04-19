@@ -141,7 +141,25 @@ final class SurveyRepository
         
         return array_map([Survey::class, 'fromArray'], $rows);
     }
+    public function getStats(int $surveyId): array
+{
+    global $wpdb;
     
+    $segmentsCount = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->prefix}survey_sphere_segments WHERE survey_id = %d",
+        $surveyId
+    ));
+    
+    $questionsCount = $wpdb->get_var($wpdb->prepare(
+        "SELECT COUNT(*) FROM {$wpdb->prefix}survey_sphere_survey_questions WHERE survey_id = %d",
+        $surveyId
+    ));
+    
+    return [
+        'segments' => (int) $segmentsCount,
+        'questions' => (int) $questionsCount,
+    ];
+}
     /**
      * @throws DatabaseException
      */

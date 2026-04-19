@@ -6,9 +6,11 @@ interface Props {
     answers: Record<string, string>;
     onClose: () => void;
     onMessage: (msg: string) => void;
+    ajaxUrl: string;
+    nonce: string;
 }
 
-const EmailForm: React.FC<Props> = ({ surveyId, answers, onClose, onMessage }) => {
+const EmailForm: React.FC<Props> = ({ surveyId, answers, onClose, onMessage, ajaxUrl, nonce }) => {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
 
@@ -24,7 +26,7 @@ const EmailForm: React.FC<Props> = ({ surveyId, answers, onClose, onMessage }) =
 
         const formData = new FormData();
         formData.append('action', 'survey_sphere_submit_attempt');
-        formData.append('_wpnonce', (window as any).surveySphereData?.nonce || '');
+        formData.append('_wpnonce', nonce);
         formData.append('email', email);
         formData.append('survey_id', surveyId);
 
@@ -33,7 +35,7 @@ const EmailForm: React.FC<Props> = ({ surveyId, answers, onClose, onMessage }) =
         });
 
         try {
-            const response = await fetch((window as any).surveySphereData?.ajaxUrl || '', {
+            const response = await fetch(ajaxUrl, {
                 method: 'POST',
                 body: formData
             });

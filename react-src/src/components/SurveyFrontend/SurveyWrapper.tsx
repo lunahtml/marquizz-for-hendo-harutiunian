@@ -11,6 +11,8 @@ interface Props {
         survey: Survey;
         questions: Question[];
         segments: Segment[];
+        ajaxUrl: string;
+        nonce: string;
     };
 }
 
@@ -94,6 +96,8 @@ const SurveyWrapper: React.FC<Props> = ({ surveyId, surveyData }) => {
                 segments={surveyData.segments}
                 chartType={surveyData.survey.chartType}
                 onRestart={handleRestart}
+                ajaxUrl={surveyData.ajaxUrl}
+                nonce={surveyData.nonce}
             />
         );
     }

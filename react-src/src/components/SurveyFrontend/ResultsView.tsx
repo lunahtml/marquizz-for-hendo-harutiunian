@@ -11,12 +11,22 @@ interface Props {
     segments: Segment[];
     chartType: string;
     onRestart: () => void;
+    ajaxUrl: string;
+    nonce: string;
 }
-
-const ResultsView: React.FC<Props> = ({ surveyId, questions, answers, segments, chartType, onRestart }) => {
+const ResultsView: React.FC<Props> = ({
+    surveyId,
+    questions,
+    answers,
+    segments,
+    chartType,
+    onRestart,
+    ajaxUrl,
+    nonce
+}) => {
+    console.log('ResultsView props:', { questions, answers, segments, chartType });
     const [showEmailForm, setShowEmailForm] = useState(false);
     const [saveMessage, setSaveMessage] = useState('');
-
     // Вычисляем баллы по сегментам
     const calculateSegmentScores = () => {
         const scores: Record<string, { total: number; count: number; maxPossible: number }> = {};
@@ -41,6 +51,7 @@ const ResultsView: React.FC<Props> = ({ surveyId, questions, answers, segments, 
                     }
                 }
             }
+
         });
 
         return scores;
@@ -108,6 +119,8 @@ const ResultsView: React.FC<Props> = ({ surveyId, questions, answers, segments, 
                     answers={answers}
                     onClose={() => setShowEmailForm(false)}
                     onMessage={setSaveMessage}
+                    ajaxUrl={ajaxUrl}
+                    nonce={nonce}
                 />
             )}
 

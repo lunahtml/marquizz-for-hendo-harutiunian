@@ -6,7 +6,7 @@ import QuestionsCanvas from './QuestionsCanvas';
 import type { Segment, Question } from '../../types';
 
 const SurveyEditor: React.FC = () => {
-    const surveyId = document.getElementById('survey-sphere-root')?.dataset.surveyId || '';
+    const surveyId = document.getElementById('survey-sphere-editor')?.dataset.surveyId || '';
     const [segments, setSegments] = useState<Segment[]>([]);
     const [surveyQuestions, setSurveyQuestions] = useState<Question[]>([]);
     const [chartType, setChartType] = useState<string>('polarArea');
@@ -55,6 +55,7 @@ const SurveyEditor: React.FC = () => {
     };
 
     const handleChartTypeChange = async (newType: string) => {
+        console.log('Changing chart type to:', newType, 'surveyId:', surveyId);
         try {
             const response = await fetch(`/chess/wp-json/survey-sphere/v1/surveys/${surveyId}`, {
                 method: 'PUT',

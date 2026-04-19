@@ -8,10 +8,10 @@ class AdminAssets
 {
     public static function enqueue(string $hook): void
     {
-        // Survey edit page
-        if (strpos($hook, 'survey-sphere-edit') !== false) {
-            $asset_file = include(SURVEY_SPHERE_PATH . 'react-src/build/index.asset.php');
-            
+        $asset_file = include(SURVEY_SPHERE_PATH . 'react-src/build/index.asset.php');
+        
+        // Все страницы плагина (главная, редактирование, вопросы)
+        if (strpos($hook, 'survey-sphere') !== false) {
             wp_enqueue_script(
                 'survey-sphere-react',
                 SURVEY_SPHERE_URL . 'react-src/build/index.js',
@@ -31,12 +31,6 @@ class AdminAssets
                 'nonce' => wp_create_nonce('wp_rest'),
                 'apiUrl' => rest_url('survey-sphere/v1'),
             ]);
-        }
-        
-        // Surveys list page
-        if (strpos($hook, 'survey-sphere') !== false && strpos($hook, 'survey-sphere-edit') === false) {
-            wp_enqueue_style('survey-sphere-admin', SURVEY_SPHERE_URL . 'assets/admin/css/admin.css', [], SURVEY_SPHERE_VERSION);
-            wp_enqueue_script('survey-sphere-admin', SURVEY_SPHERE_URL . 'assets/admin/js/admin.js', ['jquery'], SURVEY_SPHERE_VERSION, true);
         }
     }
 }

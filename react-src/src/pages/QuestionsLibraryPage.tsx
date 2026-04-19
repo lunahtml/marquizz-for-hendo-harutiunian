@@ -1,4 +1,4 @@
-//react-src/src/pages/Questions/QuestionsLibraryPage.tsx
+//react-src/src/pages/QuestionsLibraryPage.tsx
 import React, { useState, useEffect } from 'react';
 import Table from '../components/common/Table';
 import Button from '../components/common/Button';
@@ -6,8 +6,14 @@ import Modal from '../components/common/Modal';
 import Input from '../components/common/Input';
 import type { Question, Segment, Survey } from '../types';
 
+interface QuestionWithStats extends Question {
+    optionsCount: number;
+    usedInSurveys: number;
+    surveyNames: string[];
+}
+
 const QuestionsLibraryPage: React.FC = () => {
-    const [questions, setQuestions] = useState<Question[]>([]);
+    const [questions, setQuestions] = useState<QuestionWithStats[]>([]);
     const [segments, setSegments] = useState<Segment[]>([]);
     const [surveys, setSurveys] = useState<Survey[]>([]);
     const [loading, setLoading] = useState(true);
@@ -24,7 +30,7 @@ const QuestionsLibraryPage: React.FC = () => {
     const loadData = async () => {
         try {
             const [questionsRes, segmentsRes, surveysRes] = await Promise.all([
-                fetch('/chess/wp-json/survey-sphere/v1/questions', { credentials: 'same-origin' }),
+                fetch('/chess/wp-json/survey-sphere/v1/questions?with_stats=1', { credentials: 'same-origin' }),
                 fetch('/chess/wp-json/survey-sphere/v1/segments', { credentials: 'same-origin' }),
                 fetch('/chess/wp-json/survey-sphere/v1/surveys', { credentials: 'same-origin' })
             ]);
@@ -65,7 +71,7 @@ const QuestionsLibraryPage: React.FC = () => {
     };
 
     const handleDeleteQuestion = async (id: string) => {
-        if (!confirm('Delete this question?')) return;
+        if (!confirm('Удалить этот вопрос?')) return;
 
         try {
             await fetch(`/chess/wp-json/survey-sphere/v1/questions/${id}`, {
@@ -75,44 +81,73 @@ const QuestionsLibraryPage: React.FC = () => {
             await loadData();
         } catch (error) {
             console.error('Failed to delete question:', error);
+            alert('Не удалось удалить вопрос');
         }
     };
 
     const filteredQuestions = questions.filter(q => {
         const matchesSearch = q.text.toLowerCase().includes(search.toLowerCase());
-        // TODO: фильтрация по сегменту и опросу когда будет API
+        // TODO: добавить фильтрацию по сегменту и опросу когда API будет готов
         return matchesSearch;
     });
 
     const columns = [
-        { key: 'text', header: 'Question' },
         {
-            key: 'options',
-            header: 'Options',
-            render: (q: Question) => q.options?.length || 0
+            key: 'text' as keyof QuestionWithStats,
+            header: 'Вопрос',
+            render: (q: QuestionWithStats) => (
+                <div>
+                    <strong>{q.text}</strong>
+                    {q.segmentName && (
+                        <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                            📁 {q.segmentName}
+                        </div>
+                    )}
+                </div>
+            )
         },
         {
-            key: 'usage',
-            header: 'Used in',
-            render: () => '-' // TODO: добавить количество опросов
+            key: 'optionsCount' as keyof QuestionWithStats,
+            header: 'Варианты',
+            render: (q: QuestionWithStats) => (
+                <span className="ss-badge">{q.optionsCount || q.options?.length || 0}</span>
+            )
+        },
+        {
+            key: 'usedInSurveys' as keyof QuestionWithStats,
+            header: 'Используется в опросах',
+            render: (q: QuestionWithStats) => {
+                const count = q.usedInSurveys || 0;
+                return (
+                    <div>
+                        <span className="ss-badge">{count}</span>
+                        {count > 0 && q.surveyNames && (
+                            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                                {q.surveyNames.slice(0, 2).join(', ')}
+                                {q.surveyNames.length > 2 && ` +${q.surveyNames.length - 2}`}
+                            </div>
+                        )}
+                    </div>
+                );
+            }
         },
     ];
 
-    if (loading) return <div className="ss-loading">Loading questions...</div>;
+    if (loading) return <div className="ss-loading">Загрузка вопросов...</div>;
 
     return (
         <div className="ss-page">
             <div className="ss-page-header">
-                <h1>Questions Library</h1>
+                <h1>Библиотека вопросов</h1>
                 <Button variant="primary" onClick={() => setIsCreateModalOpen(true)}>
-                    + Create Question
+                    + Создать вопрос
                 </Button>
             </div>
 
             <div className="ss-page-filters">
                 <input
                     type="text"
-                    placeholder="Search questions..."
+                    placeholder="Поиск по тексту вопроса..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="ss-search-input"
@@ -122,7 +157,7 @@ const QuestionsLibraryPage: React.FC = () => {
                     onChange={(e) => setFilterSegment(e.target.value)}
                     className="ss-select"
                 >
-                    <option value="">All Segments</option>
+                    <option value="">Все сегменты</option>
                     {segments.map(s => (
                         <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
@@ -132,11 +167,14 @@ const QuestionsLibraryPage: React.FC = () => {
                     onChange={(e) => setFilterSurvey(e.target.value)}
                     className="ss-select"
                 >
-                    <option value="">All Surveys</option>
+                    <option value="">Все опросы</option>
                     {surveys.map(s => (
                         <option key={s.id} value={s.id}>{s.name}</option>
                     ))}
                 </select>
+                <span className="ss-filter-info">
+                    Найдено: {filteredQuestions.length}
+                </span>
             </div>
 
             <Table
@@ -144,15 +182,12 @@ const QuestionsLibraryPage: React.FC = () => {
                 data={filteredQuestions}
                 actions={(question) => (
                     <div className="ss-actions">
-                        <Button variant="secondary" size="small">
-                            Edit
-                        </Button>
                         <Button
                             variant="danger"
                             size="small"
                             onClick={() => handleDeleteQuestion(question.id)}
                         >
-                            Delete
+                            Удалить
                         </Button>
                     </div>
                 )}
@@ -161,23 +196,23 @@ const QuestionsLibraryPage: React.FC = () => {
             <Modal
                 isOpen={isCreateModalOpen}
                 onClose={() => setIsCreateModalOpen(false)}
-                title="Create New Question"
+                title="Создать новый вопрос"
                 footer={
                     <>
                         <Button variant="secondary" onClick={() => setIsCreateModalOpen(false)}>
-                            Cancel
+                            Отмена
                         </Button>
                         <Button variant="primary" onClick={handleCreateQuestion}>
-                            Create
+                            Создать
                         </Button>
                     </>
                 }
             >
                 <Input
-                    label="Question Text"
+                    label="Текст вопроса"
                     value={newQuestionText}
                     onChange={(e) => setNewQuestionText(e.target.value)}
-                    placeholder="Enter your question..."
+                    placeholder="Введите текст вопроса..."
                     autoFocus
                 />
             </Modal>
