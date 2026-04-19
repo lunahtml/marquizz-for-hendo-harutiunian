@@ -312,3 +312,38 @@
     justify-content: center;
     margin-top: 30px;
 }
+
+
+.overall-score {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.score-circle {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto 15px;
+    border-radius: 50%;
+    border: 6px solid;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.score-value {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.score-level {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.score-description {
+    color: #666;
+    font-size: 14px;
+    max-width: 400px;
+    margin: 0 auto;
+}

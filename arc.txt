@@ -216,9 +216,12 @@ survey-sphere/
     ├──src/
         ├── index.tsx v
         ├── App.tsx v
+        ├── frontend/
+            ├── index.tsx
         ├── types/
             ├── index.ts v
         ├── pages/
+        │   │   ├── SurveyPage.tsx v
         │   │   ├── SurveysList.tsx v
         │   │   ├── QuestionsLibraryPage.tsx v
         │   │ 
@@ -229,7 +232,14 @@ survey-sphere/
         │   │   ├── Modal.tsx v
         │   │   └── Table.tsx v
         │   └── Analytics/
-        │   └── Common/
+        │   └── SurveyFrontend/
+        │       └── SurveyWrapper.tsx v
+        │       └── QuestionSlide.tsx v
+        │       └── ProgressBar.tsx v
+        │       └── OptionsList.tsx v
+        │       └── ChartView.tsx v
+        │       └── ResultView.tsx v
+        │       └── EmailForm.tsx v
         │   └── SurveyBuilder/
         │       ├── SegmentsPanel.tsx v
         │       ├── QuestionsLibrary.tsx v

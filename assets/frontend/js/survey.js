@@ -2,11 +2,6 @@
  * Survey Sphere Frontend JavaScript
  * survey-sphere\assets\frontend\js\survey.js
  */
-
-
-/**
- * Survey Sphere Frontend JavaScript
- */
 (function () {
     'use strict';
 
@@ -45,7 +40,6 @@
 
         var surveyId = wrapper.dataset.surveyId;
         var collectedAnswers = {};
-        var currentPercentage = 0;
 
         console.log('[SurveySphere] Survey ID:', surveyId);
         console.log('[SurveySphere] Slides:', slides.length);
@@ -92,6 +86,187 @@
             });
         }
 
+        function getOverallLevel(score) {
+            if (score <= 25) {
+                return {
+                    name: 'Критический',
+                    color: '#dc3545',
+                    description: 'ИТ-инфраструктура требует немедленного вмешательства.'
+                };
+            }
+            if (score <= 50) {
+                return {
+                    name: 'Низкий',
+                    color: '#fd7e14',
+                    description: 'Присутствуют системные проблемы. Необходим аудит.'
+                };
+            }
+            if (score <= 75) {
+                return {
+                    name: 'Средний',
+                    color: '#ffc107',
+                    description: 'Базовые процессы настроены, но есть зоны для улучшения.'
+                };
+            }
+            return {
+                name: 'Высокий',
+                color: '#28a745',
+                description: 'IT-функция стабильно работает.'
+            };
+        }
+
+        function showResults() {
+            console.log('[SurveySphere] showResults called');
+
+            var segments = window.surveySphereData?.segments || [];
+
+            if (segments.length === 0) {
+                resultsDiv.querySelector('.results-summary').innerHTML = '<h3>Нет сегментов для отображения</h3>';
+                form.style.display = 'none';
+                resultsDiv.style.display = 'block';
+                return;
+            }
+
+            var segmentScores = {};
+            var segmentCounts = {};
+
+            segments.forEach(function (seg) {
+                segmentScores[seg.id] = 0;
+                segmentCounts[seg.id] = 0;
+            });
+            segmentScores['uncategorized'] = 0;
+            segmentCounts['uncategorized'] = 0;
+
+            for (var qId in collectedAnswers) {
+                var option = wrapper.querySelector('input[value="' + collectedAnswers[qId] + '"]');
+                if (option) {
+                    var questionSlide = option.closest('.question-slide');
+                    var segmentId = questionSlide?.dataset.segmentId || 'uncategorized';
+                    var score = parseFloat(option.dataset.score) || 0;
+
+                    segmentScores[segmentId] = (segmentScores[segmentId] || 0) + score;
+                    segmentCounts[segmentId] = (segmentCounts[segmentId] || 0) + 1;
+                }
+            }
+
+            var maxPossibleScore = 10;
+            var segmentPercentages = {};
+            var totalPercentage = 0;
+            var segmentCount = 0;
+
+            segments.forEach(function (seg) {
+                var avg = segmentCounts[seg.id] > 0
+                    ? segmentScores[seg.id] / segmentCounts[seg.id]
+                    : 0;
+                var percentage = Math.round((avg / maxPossibleScore) * 100);
+                segmentPercentages[seg.id] = percentage;
+                totalPercentage += percentage;
+                segmentCount++;
+            });
+
+            var overallScore = segmentCount > 0 ? Math.round(totalPercentage / segmentCount) : 0;
+            var level = getOverallLevel(overallScore) || { name: 'Н/Д', color: '#999', description: '' };
+
+            form.style.display = 'none';
+            resultsDiv.style.display = 'block';
+
+            var summary = resultsDiv.querySelector('.results-summary');
+            if (summary) {
+                summary.innerHTML = `
+                    <div class="overall-score">
+                        <div class="score-circle" style="border-color: ${level.color}">
+                            <span class="score-value">${overallScore}%</span>
+                        </div>
+                        <div class="score-level" style="color: ${level.color}">${level.name}</div>
+                        <p class="score-description">${level.description}</p>
+                    </div>
+                `;
+            }
+
+            var canvas = resultsDiv.querySelector('canvas');
+            if (canvas && typeof Chart !== 'undefined') {
+                Chart.register(
+                    Chart.ArcElement, Chart.RadialLinearScale, Chart.CategoryScale,
+                    Chart.LinearScale, Chart.BarElement, Chart.LineElement, Chart.PointElement,
+                    Chart.Title, Chart.Tooltip, Chart.Legend, Chart.Filler,
+                    Chart.PolarAreaController, Chart.RadarController,
+                    Chart.DoughnutController, Chart.BarController
+                );
+
+                var chartType = canvas.dataset.chartType || 'polarArea';
+                var labels = segments.map(function (s) { return s.name; });
+                var data = segments.map(function (s) { return segmentPercentages[s.id] || 0; });
+                var colors = segments.map(function (s) { return s.color + 'CC'; });
+                var borderColors = segments.map(function (s) { return s.color; });
+
+                var existing = Chart.getChart(canvas);
+                if (existing) existing.destroy();
+
+                if (chartType === 'polarArea') {
+                    var backgroundDatasets = [
+                        { data: segments.map(function () { return 25; }), backgroundColor: 'rgba(220, 53, 69, 0.15)', borderWidth: 0 },
+                        { data: segments.map(function () { return 50; }), backgroundColor: 'rgba(253, 126, 20, 0.12)', borderWidth: 0 },
+                        { data: segments.map(function () { return 75; }), backgroundColor: 'rgba(255, 193, 7, 0.1)', borderWidth: 0 },
+                        { data: segments.map(function () { return 100; }), backgroundColor: 'rgba(40, 167, 69, 0.05)', borderWidth: 0 }
+                    ];
+
+                    new Chart(canvas, {
+                        type: 'polarArea',
+                        data: { labels: labels, datasets: backgroundDatasets },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                            scales: { r: { max: 100, ticks: { display: false }, grid: { display: false } } }
+                        }
+                    });
+
+                    new Chart(canvas, {
+                        type: 'polarArea',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                data: data,
+                                backgroundColor: colors,
+                                borderColor: borderColors,
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: { position: 'bottom', labels: { font: { size: 12 } } },
+                                title: { display: true, text: 'Результаты по сегментам', font: { size: 16 } }
+                            },
+                            scales: { r: { max: 100, ticks: { stepSize: 25, callback: function (v) { return v + '%'; } } } }
+                        }
+                    });
+                } else {
+                    new Chart(canvas, {
+                        type: chartType,
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Score (%)',
+                                data: data,
+                                backgroundColor: colors,
+                                borderColor: borderColors,
+                                borderWidth: 1
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: { legend: { display: chartType !== 'bar' } },
+                            scales: chartType === 'bar' || chartType === 'radar' ? { y: { max: 100 } } : {}
+                        }
+                    });
+                }
+                console.log('[SurveySphere] Chart drawn');
+            }
+        }
+
         if (form) {
             form.addEventListener('submit', function (e) {
                 e.preventDefault();
@@ -121,7 +296,6 @@
 
                 console.log('[SurveySphere] Collected answers:', collectedAnswers);
 
-                // Сохраняем в localStorage
                 try {
                     localStorage.setItem('survey_' + surveyId, JSON.stringify({
                         answers: collectedAnswers,
@@ -134,70 +308,6 @@
 
                 showResults();
             });
-        }
-
-        function showResults() {
-            console.log('[SurveySphere] showResults called');
-
-            var totalScore = 0, count = 0;
-            for (var qId in collectedAnswers) {
-                var option = wrapper.querySelector('input[value="' + collectedAnswers[qId] + '"]');
-                if (option) {
-                    totalScore += parseFloat(option.dataset.score) || 0;
-                    count++;
-                }
-            }
-            var averageScore = count > 0 ? totalScore / count : 0;
-            currentPercentage = Math.round((averageScore / 10) * 100);
-
-            console.log('[SurveySphere] Score:', currentPercentage + '%');
-
-            form.style.display = 'none';
-            resultsDiv.style.display = 'block';
-
-            var summary = resultsDiv.querySelector('.results-summary');
-            if (summary) {
-                summary.innerHTML = '<h3>Your Score: ' + currentPercentage + '%</h3>';
-            }
-
-            var canvas = resultsDiv.querySelector('canvas');
-            if (canvas && typeof Chart !== 'undefined') {
-                console.log('[SurveySphere] Drawing chart, type:', canvas.dataset.chartType);
-
-                Chart.register(
-                    Chart.ArcElement, Chart.RadialLinearScale, Chart.CategoryScale,
-                    Chart.LinearScale, Chart.BarElement, Chart.LineElement, Chart.PointElement,
-                    Chart.Title, Chart.Tooltip, Chart.Legend, Chart.Filler,
-                    Chart.PolarAreaController, Chart.RadarController,
-                    Chart.DoughnutController, Chart.BarController
-                );
-
-                var chartType = canvas.dataset.chartType || 'polarArea';
-                if (chartType === 'polar') chartType = 'polarArea';
-
-                var existing = Chart.getChart(canvas);
-                if (existing) existing.destroy();
-
-                new Chart(canvas, {
-                    type: chartType,
-                    data: {
-                        labels: ['Score'],
-                        datasets: [{
-                            data: [currentPercentage, 100 - currentPercentage],
-                            backgroundColor: ['#4CAF50', '#e0e0e0'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: { legend: { display: false } }
-                    }
-                });
-                console.log('[SurveySphere] Chart drawn');
-            } else {
-                console.warn('[SurveySphere] Canvas or Chart not available');
-            }
         }
 
         if (restartBtn) {
@@ -258,8 +368,6 @@
                     }
                 }
 
-                console.log('[SurveySphere] Sending AJAX to:', surveySphereData.ajaxUrl);
-
                 fetch(surveySphereData.ajaxUrl, { method: 'POST', body: formData })
                     .then(function (r) { return r.json(); })
                     .then(function (data) {
@@ -293,7 +401,6 @@
             });
         }
 
-        // Загружаем сохранённые ответы из localStorage
         try {
             var saved = localStorage.getItem('survey_' + surveyId);
             if (saved) {
@@ -301,13 +408,10 @@
                 if (data.answers) {
                     collectedAnswers = data.answers;
                     console.log('[SurveySphere] Loaded answers from localStorage, showing results');
-
-                    // Сразу показываем результаты
                     setTimeout(function () {
                         showResults();
                     }, 100);
-
-                    return; // Выходим, не показываем вопросы
+                    return;
                 }
             }
         } catch (e) {

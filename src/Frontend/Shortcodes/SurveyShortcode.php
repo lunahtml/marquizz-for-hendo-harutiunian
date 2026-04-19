@@ -1,6 +1,5 @@
 <?php
 //src/Frontend/Shortcodes/SurveyShortcode.php
-
 declare(strict_types=1);
 
 namespace SurveySphere\Frontend\Shortcodes;
@@ -38,25 +37,67 @@ final class SurveyShortcode
                 return '<p>' . esc_html__('Survey not found or inactive', 'survey-sphere') . '</p>';
             }
             
-            // Load questions and options
             $questionRepo = new \SurveySphere\Database\Repositories\QuestionRepository();
             $optionRepo = new \SurveySphere\Database\Repositories\OptionRepository();
+            $segmentRepo = new \SurveySphere\Database\Repositories\SegmentRepository();
             
             $questions = $questionRepo->findBySurveyId($survey->id);
+            $segments = $segmentRepo->findBySurveyId($survey->id);
             $optionsByQuestion = [];
             
             foreach ($questions as $question) {
                 $optionsByQuestion[$question->id] = $optionRepo->findByQuestionId($question->id);
             }
             
-            // Enqueue Chart.js
-            wp_enqueue_script(
-                'chart-js',
-                'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+            wp_enqueue_style(
+                'survey-sphere-frontend',
+                SURVEY_SPHERE_URL . 'react-src/build/frontend.css',
                 [],
-                '4.4.0',
+                SURVEY_SPHERE_VERSION
+            );
+            
+            wp_enqueue_script(
+                'survey-sphere-frontend',
+                SURVEY_SPHERE_URL . 'react-src/build/frontend.js',
+                ['wp-element'],
+                SURVEY_SPHERE_VERSION,
                 true
             );
+            
+            $surveyData = [
+                'survey' => [
+                    'id' => $survey->publicId,
+                    'name' => $survey->name,
+                    'description' => $survey->description,
+                    'chartType' => $survey->chartType,
+                ],
+                'questions' => array_map(function($q) use ($optionRepo) {
+                    $segmentId = $q->segmentId ?? null;
+                    return [
+                        'id' => $q->publicId,
+                        'text' => $q->text,
+                        'segmentId' => $segmentId,
+                        'options' => array_map(function($opt) {
+                            return [
+                                'id' => $opt->publicId,
+                                'text' => $opt->text,
+                                'score' => $opt->score,
+                            ];
+                        }, $optionRepo->findByQuestionId($q->id)),
+                    ];
+                }, $questions),
+                'segments' => array_map(function($seg) {
+                    return [
+                        'id' => $seg->publicId,
+                        'name' => $seg->name,
+                        'color' => $seg->color,
+                    ];
+                }, $segments),
+                'ajaxUrl' => admin_url('admin-ajax.php'),
+                'nonce' => wp_create_nonce('survey_sphere_frontend'),
+            ];
+            
+ 
             
             ob_start();
             include SURVEY_SPHERE_PATH . 'src/Frontend/Views/survey/wrapper.php';

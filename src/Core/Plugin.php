@@ -125,21 +125,6 @@ final class Plugin
                 [],
                 SURVEY_SPHERE_VERSION
             );
-            
-            wp_enqueue_script(
-                'survey-sphere-frontend',
-                SURVEY_SPHERE_URL . 'assets/frontend/js/survey.js',
-                [],
-                SURVEY_SPHERE_VERSION,
-                true
-            );
-            
-            wp_localize_script('survey-sphere-frontend', 'surveySphereData', [
-                'ajaxUrl' => admin_url('admin-ajax.php'),
-                'nonce' => wp_create_nonce('survey_sphere_frontend'),
-                'pleaseSelect' => __('Please select an answer', 'survey-sphere'),
-                'answerAll' => __('Please answer all questions', 'survey-sphere'),
-            ]);
         }
     }
 

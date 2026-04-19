@@ -21,7 +21,7 @@ export interface Question {
     id: string;
     text: string;
     options: Option[];
-    segmentId?: string | null;  // ← добавляем
+    segmentId?: string | null;
 }
 
 export interface Option {
