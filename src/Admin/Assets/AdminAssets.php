@@ -10,10 +10,26 @@ class AdminAssets
     {
         // Survey edit page
         if (strpos($hook, 'survey-sphere-edit') !== false) {
-            wp_enqueue_style('survey-sphere-admin', SURVEY_SPHERE_URL . 'assets/admin/css/admin.css', [], SURVEY_SPHERE_VERSION);
-            wp_enqueue_script('survey-sphere-editor', SURVEY_SPHERE_URL . 'assets/admin/js/survey-editor.js', ['jquery'], SURVEY_SPHERE_VERSION, true);
-            wp_localize_script('survey-sphere-editor', 'surveySphereAdmin', [
-                'nonce' => wp_create_nonce('survey_sphere_admin'),
+            $asset_file = include(SURVEY_SPHERE_PATH . 'react-src/build/index.asset.php');
+            
+            wp_enqueue_script(
+                'survey-sphere-react',
+                SURVEY_SPHERE_URL . 'react-src/build/index.js',
+                $asset_file['dependencies'],
+                $asset_file['version'],
+                true
+            );
+            
+            wp_enqueue_style(
+                'survey-sphere-react',
+                SURVEY_SPHERE_URL . 'react-src/build/index.css',
+                [],
+                $asset_file['version']
+            );
+            
+            wp_localize_script('survey-sphere-react', 'surveySphereAdmin', [
+                'nonce' => wp_create_nonce('wp_rest'),
+                'apiUrl' => rest_url('survey-sphere/v1'),
             ]);
         }
         

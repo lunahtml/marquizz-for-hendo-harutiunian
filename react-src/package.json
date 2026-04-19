@@ -1,0 +1,18 @@
+{
+    "name": "survey-sphere-react",
+    "version": "1.0.0",
+    "scripts": {
+        "build": "wp-scripts build",
+        "start": "wp-scripts start"
+    },
+    "devDependencies": {
+        "@wordpress/scripts": "^27.0.0"
+    },
+    "dependencies": {
+        "@wordpress/api-fetch": "^6.0.0",
+        "@wordpress/element": "^5.0.0",
+        "@wordpress/i18n": "^4.0.0",
+        "react": "^18.2.0",
+        "react-dom": "^18.2.0"
+    }
+}

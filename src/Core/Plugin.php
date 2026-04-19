@@ -1,6 +1,5 @@
 <?php
 //src/Core/Plugin.php
-
 declare(strict_types=1);
 
 namespace SurveySphere\Core;
@@ -11,6 +10,7 @@ use SurveySphere\Frontend\Shortcodes\SurveyShortcode;
 use SurveySphere\Database\Repositories\SurveyRepository;
 use SurveySphere\Database\Repositories\QuestionRepository;
 use SurveySphere\Services\SurveyService;
+use SurveySphere\Admin\API\Controllers\RestSegmentController;
 
 final class Plugin
 {
@@ -34,11 +34,8 @@ final class Plugin
 
     private function registerServices(): void
     {
-        // Register repositories
         $this->container->set(SurveyRepository::class, fn() => new SurveyRepository());
         $this->container->set(QuestionRepository::class, fn() => new QuestionRepository());
-        
-        // Register services
         $this->container->set(SurveyService::class, fn($c) => new SurveyService(
             $c->get(SurveyRepository::class)
         ));
@@ -47,6 +44,7 @@ final class Plugin
     private function initHooks(): void
     {
         add_action('init', [$this, 'init']);
+        add_action('rest_api_init', [$this, 'registerRestRoutes']);
         add_action('admin_menu', [$this, 'adminMenu']);
         add_action('admin_enqueue_scripts', [$this, 'adminAssets']);
         add_action('wp_enqueue_scripts', [$this, 'frontendAssets']);
@@ -68,9 +66,38 @@ final class Plugin
         add_shortcode('survey_sphere', [new SurveyShortcode($this->container), 'render']);
     }
 
+    // public function registerRestRoutes(): void
+    // {
+    //     $segmentController = new RestSegmentController();
+    //     $segmentController->register_routes();
+    // }
+    public function registerRestRoutes(): void
+    {
+        $segmentController = new \SurveySphere\Admin\API\Controllers\RestSegmentController();
+        $segmentController->register_routes();
+        
+        $questionController = new \SurveySphere\Admin\API\Controllers\RestQuestionController();
+        $questionController->register_routes();
+        
+        $surveyQuestionsController = new \SurveySphere\Admin\API\Controllers\RestSurveyQuestionsController();
+        $surveyQuestionsController->register_routes();
+    }
     public function init(): void
     {
         load_plugin_textdomain('survey-sphere', false, dirname(SURVEY_SPHERE_BASENAME) . '/languages');
+        
+        // Включаем cookie-аутентификацию для REST API
+        add_filter('rest_authentication_errors', function($result) {
+            if (!empty($result)) {
+                return $result;
+            }
+            
+            if (is_user_logged_in()) {
+                return true;
+            }
+            
+            return $result;
+        });
     }
 
     public function adminMenu(): void
@@ -80,6 +107,11 @@ final class Plugin
 
     public function adminAssets(string $hook): void
     {
+        wp_localize_script('wp-api', 'wpApiSettings', [
+            'root' => esc_url_raw(rest_url()),
+            'nonce' => wp_create_nonce('wp_rest'),
+        ]);
+        
         AdminAssets::enqueue($hook);
     }
 

@@ -132,7 +132,9 @@
                      <?php endforeach; ?>
                  <?php endif; ?>
              </div>
-             
+             <div id="survey-sphere-root" data-survey-id="<?php echo esc_attr($survey->publicId); ?>">
+    <div class="loading">Loading React editor...</div>
+</div>
              <div class="editor-footer">
                  <button type="button" class="button button-primary" id="save-survey-btn">
                      <?php esc_html_e('Save All Changes', 'survey-sphere'); ?>

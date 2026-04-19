@@ -1,8 +1,7 @@
 survey-sphere/
 ├── survey-sphere.php v                    # Главный файл плагина 
 ├── uninstall.php     v                   # Полная очистка при удалении
-├── composer.json     v                   # PSR-4 автозагрузка
-├── package.json                         # Для сборки фронтенда
+├── composer.json     v                   # PSR-4 автозагрузка          
 ├── webpack.config.js                    # Сборка React в админке
 ├── README.md
 │
@@ -28,7 +27,7 @@ survey-sphere/
 │   │   │
 │   │   ├── Models/                      # Модели данных (DTO + логика)
 │   │   │   ├── Survey.php   v
-│   │   │   ├── Segment.php
+│   │   │   ├── Segment.php v
 │   │   │   ├── Question.php v
 │   │   │   ├── Option.php  v
 │   │   │   ├── Attempt.php v 
@@ -37,7 +36,7 @@ survey-sphere/
 │   │   │
 │   │   ├── Repositories/                # Репозитории (CRUD операции)
 │   │   │   ├── SurveyRepository.php   v
-│   │   │   ├── SegmentRepository.php
+│   │   │   ├── SegmentRepository.php v
 │   │   │   ├── QuestionRepository.php  v
 │   │   │   ├── OptionRepository.php    v
 │   │   │   ├── AttemptRepository.php v
@@ -76,8 +75,9 @@ survey-sphere/
 │   │   │   │   └── ResultRoutes.php     # /wp-json/survey-sphere/v1/results
 │   │   │   │
 │   │   │   ├── Controllers/
-│   │   │   │   ├── RestSurveyController.php
-│   │   │   │   ├── RestQuestionController.php
+│   │   │   │   ├── RestSegmentController.php   v
+│   │   │   │   ├── RestSurveyController.php    v
+│   │   │   │   ├── RestQuestionController.php v
 │   │   │   │   └── RestResultController.php
 │   │   │   │
 │   │   │   └── Middleware/
@@ -208,30 +208,37 @@ survey-sphere/
 │       ├── fonts/
 │       └── icons/
 │
-├── react-src/                           # Исходники React для админки
-│   ├── index.tsx                         # Точка входа
-│   ├── App.tsx
-│   ├── components/
-│   │   ├── SurveyBuilder/
-│   │   │   ├── SurveyEditor.tsx         # Главный редактор
-│   │   │   ├── SegmentManager.tsx       # Управление сегментами
-│   │   │   ├── QuestionList.tsx         # Список вопросов
-│   │   │   ├── QuestionEditor.tsx       # Редактор вопроса
-│   │   │   ├── OptionEditor.tsx         # Редактор вариантов
-│   │   │   └── ChartSelector.tsx        # Выбор типа графика
-│   │   ├── Common/
-│   │   │   ├── Button.tsx
-│   │   │   ├── Modal.tsx
-│   │   │   └── ColorPicker.tsx
-│   │   └── Analytics/
-│   │       └── ResultsDashboard.tsx
-│   ├── hooks/
-│   │   ├── useSurveyData.js
-│   │   └── useApi.js
-│   ├── services/
-│   │   └── api.js                       # Клиент для REST API
-│   └── styles/
-│       └── editor.scss
+├──react-src/
+    ├── package.json v
+    ├──src/
+        ├── index.tsx v
+        ├── App.tsx v
+        ├── types/
+            ├── index.ts v
+        ├── pages/
+        │   ├── Surveys/
+        │   │   ├── SurveysList.tsx
+        │   │   └── SurveyEditor.tsx
+        │   └── Questions/
+        │       └── 
+        ├── components/
+        │   ├── common/
+        │   │   ├── Button.tsx
+        │   │   ├── Input.tsx
+        │   │   ├── Modal.tsx
+        │   │   └── Table.tsx
+        │   └── Analytics/
+        │   └── Common/
+        │   └── SurveyBuilder/
+        │       ├── SegmentsPanel.tsx v
+        │       ├── QuestionsLibrary.tsx v
+        │       └── QuestionsCanvas.tsx v 
+        ├── hooks/
+        ├── services/
+        │   ├── api.ts v
+        │   └── segmentsApi.ts
+        └── styles/
+            └── global.css
 │
 ├── templates/                           # Переопределяемые шаблоны
 │   ├── survey-sphere/
@@ -267,7 +274,7 @@ survey-sphere/
 │   ├── shortcodes.md
 │   └── customization.md
 │
-├── vendor/                              # Composer зависимости
+├── vendor/        v                      # Composer зависимости
 ├── node_modules/                        # NPM зависимости
 ├── .gitignore      v
 ├── .editorconfig
@@ -275,3 +282,121 @@ survey-sphere/
 ├── phpstan.neon                         # Статический анализ
 ├── phpunit.xml                          # Конфигурация PHPUnit
 └── LICENSE
+
+
+/wp-json/survey-sphere/v1/
+├── surveys/
+│   ├── GET /          # Список (пагинация, фильтры)
+│   ├── POST /         # Создать
+│   ├── GET /{id}      # Получить
+│   ├── PUT /{id}      # Обновить
+│   └── DELETE /{id}   # Удалить
+├── questions/
+│   ├── GET /          # Библиотека (поиск, фильтр по сегментам)
+│   ├── POST /         # Создать
+│   ├── GET /{id}      # Получить
+│   ├── PUT /{id}      # Обновить
+│   └── DELETE /{id}   # Удалить
+├── segments/
+│   ├── GET /          # Для опроса
+│   ├── POST /         # Создать
+│   ├── PUT /{id}      # Обновить
+│   └── DELETE /{id}   # Удалить
+├── survey-questions/
+│   ├── POST /attach   # Привязать вопрос к опросу
+│   ├── DELETE /detach # Отвязать
+│   └── PUT /reorder   # Изменить порядок/сегмент
+└── analytics/
+    ├── GET /survey/{id}/results
+    └── GET /respondents
+┌─────────────────────────────────────────────────────────────┐
+│  Survey Editor                                               │
+├──────────────┬──────────────────────────────────────────────┤
+│  Segments    │  Questions Library (drag to canvas)           │
+│              │                                               │
+│  📁 Security  │  ┌─────────────────────────────────────────┐ │
+│  📁 UX        │  │ Available Questions                     │ │
+│  📁 Backend   │  │  • SCRUM usage          [Add]           │ │
+│              │  │  • Client loyalty        [Add]           │ │
+│  [+ Add]      │  │  • Workspace UI         [Add]           │ │
+│              │  └─────────────────────────────────────────┘ │
+│              │                                               │
+│              │  Questions Canvas (drop zone per segment)     │
+│              │  ┌─────────────────────────────────────────┐ │
+│              │  │ Security                                 │ │
+│              │  │  • How often do you backup?              │ │
+│              │  │  • Do you use 2FA?                      │ │
+│              │  └─────────────────────────────────────────┘ │
+│              │  ┌─────────────────────────────────────────┐ │
+│              │  │ UX                                       │ │
+│              │  │  • How intuitive is the interface?       │ │
+│              │  └─────────────────────────────────────────┘ │
+└──────────────┴──────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────────┐
+│  Survey: IT Diagnostics              [Save] [Preview] [•••] │
+├──────────────┬──────────────────────────────────────────────┤
+│  Segments    │  Questions Canvas                             │
+│              │                                               │
+│  ⚡ Exploit   │  ┌─────────────────────────────────────────┐ │
+│  🔒 Security  │  │ 1. How often do services crash?        │ │
+│  🖥️ Infra     │  │    ○ Never  ○ Rarely  ○ Often          │ │
+│  📊 CRM       │  └─────────────────────────────────────────┘ │
+│  ⚙️ Processes  │                                               │
+│  🤖 AI Ready  │  ┌─────────────────────────────────────────┐ │
+│              │  │ 2. How do you detect IT failures?       │ │
+│  [+ Add]      │  │    ○ Manual  ○ Monitoring  ○ Auto      │ │
+│              │  └─────────────────────────────────────────┘ │
+│              │                                               │
+│              │  [Drag questions here or click to add]       │
+│              │                                               │
+│              │  [+ Add from Library]                        │
+└──────────────┴──────────────────────────────────────────────┘
+
+
+
+┌────────────────────────────────────────────────────────────────┐
+│  Questions Library                      [Search] [Filters ▼]   │
+├────────────────────────────────────────────────────────────────┤
+│  [✓] Question          │ Segments      │ Used in │ Actions     │
+├────────────────────────────────────────────────────────────────┤
+│  [ ] SCRUM usage       │ Methodologies │ 3       │ Edit Delete │
+│  [ ] Client loyalty    │ CRM, Sales    │ 5       │ Edit Delete │
+│  [ ] Workspace UI      │ UX, Design    │ 2       │ Edit Delete │
+└────────────────────────────────────────────────────────────────┘
+
+
+
+Этап	Задача	Время
+1	Миграция БД (сегменты)	1 день
+2	REST API для surveys, questions, segments	3 дня
+3	Базовая React-админка (роутинг, стейт)	2 дня
+4	Страница Surveys (список, создание)	2 дня
+5	Страница Questions Library	2 дня
+6	Drag-n-Drop редактор опроса	3 дня
+7	Все типы чартов	1 день
+8	Аналитика и дашборд	2 дня
+9	Тестирование и полировка	2 дня
+
+
+
+
+
+
+📊 Итог по архитектуре:
+Компонент	Статус	Причина
+Core	✅ Готово	Полное ядро
+Database/Schema	✅ Готово	Все таблицы
+Database/Models	✅ Готово	Все модели
+Database/Repositories	✅ Готово	CRUD + связи
+Admin/AJAX	✅ Готово	Все обработчики
+Admin/Views	✅ Готово	list, create, edit
+Frontend/Shortcodes	✅ Готово	Отображение опроса
+Frontend/AJAX	✅ Готово	Сохранение попыток
+Assets	✅ Готово	CSS/JS
+API	⏸️ Отложено	Для React-админки
+React	⏸️ Отложено	Следующий этап
+Charts	⏸️ Не нужно	Логика на JS
+Calculators	⏸️ Отложено	Без сегментов
+Email	⏸️ Отложено	Фича
+Segments	⏸️ Отложено	Фича

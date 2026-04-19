@@ -1,13 +1,23 @@
-        .gitignore
-        arc.txt
-        assets/
-        composer.json
-        composer.lock
-        phpcs.xml
-        phpunit.xml
-        react-src/
-        src/
-        survey-sphere.php
-        templates/
-        uninstall.php
-        vendor/
+# Composer
+vendor/
+composer.lock
+arc.txt
+# Node
+node_modules/
+react-src/node_modules/
+package-lock.json
+
+# Build
+react-src/build/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# WordPress
+*.log
+*.tmp
