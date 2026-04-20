@@ -28,7 +28,7 @@ final class RestSegmentController extends WP_REST_Controller
                 'permission_callback' => [$this, 'get_items_permissions_check'],
                 'args' => [
                     'survey_id' => [
-                        'required' => true,
+                        'required' => false,
                         'type' => 'string',
                         'sanitize_callback' => 'sanitize_text_field',
                     ],
@@ -70,6 +70,21 @@ final class RestSegmentController extends WP_REST_Controller
     {
         $surveyPublicId = $request->get_param('survey_id');
         
+        // Если survey_id не передан — возвращаем все сегменты
+        if (empty($surveyPublicId)) {
+            $segmentRepo = new SegmentRepository();
+            $allSegments = $segmentRepo->findAll(); // Нужно добавить этот метод
+            $data = array_map(function($segment) {
+                return [
+                    'id' => $segment->publicId,
+                    'name' => $segment->name,
+                    'color' => $segment->color,
+                ];
+            }, $allSegments);
+            return new WP_REST_Response(['segments' => $data], 200);
+        }
+        
+        // Иначе — сегменты конкретного опроса
         $surveyRepo = new SurveyRepository();
         $survey = $surveyRepo->findByPublicId($surveyPublicId);
         
@@ -84,11 +99,7 @@ final class RestSegmentController extends WP_REST_Controller
             return [
                 'id' => $segment->publicId,
                 'name' => $segment->name,
-                'description' => $segment->description,
-                'icon' => $segment->icon,
                 'color' => $segment->color,
-                'order_index' => $segment->orderIndex,
-                'created_at' => $segment->createdAt,
             ];
         }, $segments);
         

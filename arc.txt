@@ -1,157 +1,155 @@
 survey-sphere/
-├── survey-sphere.php          # Главный файл плагина. Точка входа, регистрация хуков активации/деактивации
-├── uninstall.php              # Полная очистка БД и опций при удалении плагина
-├── composer.json              # PSR-4 автозагрузка PHP-классов
-├── webpack.config.js          # Сборка React: два entry point (admin + frontend)
-├── tsconfig.json              # Конфигурация TypeScript для React
+├── survey-sphere.php v         # Главный файл плагина. Точка входа, регистрация хуков активации/деактивации
+├── uninstall.php   v           # Полная очистка БД и опций при удалении плагина
+├── composer.json  v            # PSR-4 автозагрузка PHP-классов
 ├── README.md                  # Документация плагина
 │
 ├── src/                       # PHP-код (PSR-4)
 │   ├── Core/                  # Ядро плагина
-│   │   ├── Plugin.php         # Инициализация, DI-контейнер, регистрация хуков
-│   │   ├── Container.php      # Простой PSR-11 контейнер для DI
-│   │   ├── Activator.php      # Активация: создание таблиц, ролей, опций
-│   │   └── Deactivator.php    # Деактивация: очистка кэша, временных данных
+│   │   ├── Plugin.php   v      # Инициализация, DI-контейнер, регистрация хуков
+│   │   ├── Container.php  v    # Простой PSR-11 контейнер для DI
+│   │   ├── Activator.php v     # Активация: создание таблиц, ролей, опций
+│   │   └── Deactivator.php v   # Деактивация: очистка кэша, временных данных
 │   │
 │   ├── Database/              # Работа с БД
 │   │   ├── Schema/            # Схемы таблиц (создание через dbDelta)
-│   │   │   ├── Manager.php            # Управление созданием/удалением всех таблиц
-│   │   │   ├── SurveyTable.php        # Таблица опросов
-│   │   │   ├── SegmentTable.php       # Таблица сегментов
-│   │   │   ├── QuestionTable.php      # Таблица вопросов
-│   │   │   ├── OptionTable.php        # Таблица вариантов ответов
-│   │   │   ├── AttemptTable.php       # Таблица попыток прохождения
-│   │   │   ├── AnswerTable.php        # Таблица ответов пользователей
-│   │   │   ├── SurveyQuestionTable.php # Связь многие-ко-многим: опросы ↔ вопросы
-│   │   │   └── RespondentTable.php    # Таблица респондентов
+│   │   │   ├── Manager.php   v         # Управление созданием/удалением всех таблиц
+│   │   │   ├── SurveyTable.php     v   # Таблица опросов
+│   │   │   ├── SegmentTable.php  v     # Таблица сегментов
+│   │   │   ├── QuestionTable.php  v    # Таблица вопросов
+│   │   │   ├── OptionTable.php   v     # Таблица вариантов ответов
+│   │   │   ├── AttemptTable.php v      # Таблица попыток прохождения
+│   │   │   ├── AnswerTable.php v       # Таблица ответов пользователей
+│   │   │   ├── SurveyQuestionTable.php v # Связь многие-ко-многим: опросы ↔ вопросы
+│   │   │   └── RespondentTable.php  v  # Таблица респондентов
 │   │   │
 │   │   ├── Models/            # DTO для работы с данными
-│   │   │   ├── Survey.php
-│   │   │   ├── Segment.php
-│   │   │   ├── Question.php
-│   │   │   ├── Option.php
-│   │   │   ├── Attempt.php
-│   │   │   ├── Answer.php
-│   │   │   └── Respondent.php
+│   │   │   ├── Survey.php v
+│   │   │   ├── Segment.php v
+│   │   │   ├── Question.php v
+│   │   │   ├── Option.php v
+│   │   │   ├── Attempt.php v
+│   │   │   ├── Answer.php v
+│   │   │   └── Respondent.php v
 │   │   │
 │   │   └── Repositories/      # Слой доступа к данным (CRUD)
-│   │       ├── SurveyRepository.php
-│   │       ├── SegmentRepository.php
-│   │       ├── QuestionRepository.php
-│   │       ├── OptionRepository.php
-│   │       ├── AttemptRepository.php
-│   │       ├── AnswerRepository.php
-│   │       ├── SurveyQuestionRepository.php  # Работа со связями опрос-вопрос
-│   │       └── RespondentRepository.php
+│   │       ├── SurveyRepository.php v
+│   │       ├── SegmentRepository.php v
+│   │       ├── QuestionRepository.php v
+│   │       ├── OptionRepository.php v
+│   │       ├── AttemptRepository.php v
+│   │       ├── AnswerRepository.php v
+│   │       ├── SurveyQuestionRepository.php  v # Работа со связями опрос-вопрос
+│   │       └── RespondentRepository.php v
 │   │
 │   ├── Admin/                 # Административная часть
 │   │   ├── AJAX/              # Обработчики WP AJAX (для обратной совместимости)
-│   │   │   ├── GetQuestionsHandler.php
-│   │   │   ├── SaveQuestionHandler.php
-│   │   │   ├── SaveOptionHandler.php
-│   │   │   ├── DeleteQuestionHandler.php
-│   │   │   ├── DeleteOptionHandler.php
-│   │   │   ├── UpdateChartTypeHandler.php
-│   │   │   └── AttachQuestionHandler.php
+│   │   │   ├── GetQuestionsHandler.php v
+│   │   │   ├── SaveQuestionHandler.php v
+│   │   │   ├── SaveOptionHandler.php v
+│   │   │   ├── DeleteQuestionHandler.php v
+│   │   │   ├── DeleteOptionHandler.php v
+│   │   │   ├── UpdateChartTypeHandler.php v
+│   │   │   └── AttachQuestionHandler.php v
 │   │   │
 │   │   ├── Menu/              # Регистрация страниц в админ-меню
-│   │   │   └── AdminMenu.php
+│   │   │   └── AdminMenu.php v
 │   │   │
 │   │   ├── Controllers/       # Контроллеры для рендеринга PHP-шаблонов
-│   │   │   └── SurveyController.php  # Список опросов, создание, редактирование, библиотека вопросов
+│   │   │   └── SurveyController.php  v # Список опросов, создание, редактирование, библиотека вопросов
 │   │   │
 │   │   ├── API/               # REST API для React-админки и фронтенда
 │   │   │   └── Controllers/
-│   │   │       ├── RestSurveyController.php          # /surveys
-│   │   │       ├── RestSegmentController.php         # /segments
-│   │   │       ├── RestQuestionController.php        # /questions
-│   │   │       ├── RestOptionController.php          # /options
-│   │   │       └── RestSurveyQuestionsController.php # /surveys/{id}/questions
+│   │   │       ├── RestSurveyController.php     v     # /surveys
+│   │   │       ├── RestSegmentController.php     v    # /segments
+│   │   │       ├── RestQuestionController.php    v   # /questions
+│   │   │       ├── RestOptionController.php    v      # /options
+│   │   │       └── RestSurveyQuestionsController.php v # /surveys/{id}/questions
 │   │   │
 │   │   ├── Assets/            # Подключение CSS/JS для админки
-│   │   │   └── AdminAssets.php
+│   │   │   └── AdminAssets.php v
 │   │   │
 │   │   └── Views/             # PHP-шаблоны (контейнеры для React)
 │   │       ├── questions/
-│   │       │   └── library.php        # Страница библиотеки вопросов
+│   │       │   └── library.php   v     # Страница библиотеки вопросов
 │   │       └── surveys/
-│   │           ├── list.php           # Страница списка опросов
-│   │           ├── create.php         # Страница создания опроса
-│   │           └── edit.php           # Страница редактирования опроса
+│   │           ├── list.php  v         # Страница списка опросов
+│   │           ├── create.php  v       # Страница создания опроса
+│   │           └── edit.php   v        # Страница редактирования опроса
 │   │
 │   ├── Frontend/              # Публичная часть
 │   │   ├── Shortcodes/
-│   │   │   └── SurveyShortcode.php    # Шорткод [survey_sphere id="..."] + передача данных в React
+│   │   │   └── SurveyShortcode.php v   # Шорткод [survey_sphere id="..."] + передача данных в React
 │   │   │
 │   │   ├── AJAX/
-│   │   │   └── SubmitAttemptHandler.php  # Сохранение результатов с email
+│   │   │   └── SubmitAttemptHandler.php v # Сохранение результатов с email
 │   │   │
 │   │   └── Views/
 │   │       └── survey/
-│   │           └── wrapper.php        # Контейнер для React-фронтенда
+│   │           └── wrapper.php   v     # Контейнер для React-фронтенда
 │   │
 │   ├── Services/              # Бизнес-логика
-│   │   └── SurveyService.php  # Управление опросами
+│   │   └── SurveyService.php v # Управление опросами
 │   │
 │   ├── Security/              # Безопасность
-│   │   ├── NonceManager.php       # Проверка nonce
-│   │   ├── InputSanitizer.php     # Санитизация ввода
-│   │   └── CapabilityManager.php  # Управление правами (manage_survey_sphere)
+│   │   ├── NonceManager.php   v    # Проверка nonce
+│   │   ├── InputSanitizer.php  v   # Санитизация ввода
+│   │   └── CapabilityManager.php  v # Управление правами (manage_survey_sphere)
 │   │
 │   └── Exceptions/            # Кастомные исключения
-│       ├── ContainerException.php
-│       ├── ValidationException.php
-│       └── DatabaseException.php
+│       ├── ContainerException.php v
+│       ├── ValidationException.php v
+│       └── DatabaseException.php v
 │
 ├── react-src/                 # React-приложение (исходники)
-│   ├── package.json           # NPM зависимости
-│   ├── tsconfig.json          # Конфиг TypeScript
-│   ├── webpack.config.js      # Сборка (admin + frontend)
+│   ├── package.json    v       # NPM зависимости
+│   ├── tsconfig.json  v        # Конфиг TypeScript
+│   ├── webpack.config.js  v    # Сборка (admin + frontend)
 │   │
 │   └── src/
-│       ├── index.tsx          # Entry point для админки
-│       ├── App.tsx            # Роутинг между страницами админки и фронтенда
+│       ├── index.tsx   v       # Entry point для админки
+│       ├── App.tsx    v        # Роутинг между страницами админки и фронтенда
 │       │
 │       ├── frontend/
-│       │   └── index.tsx      # Entry point для публичной части
+│       │   └── index.tsx    v  # Entry point для публичной части
 │       │
 │       ├── types/
-│       │   └── index.ts       # TypeScript-типы (Survey, Question, Segment, Option)
+│       │   └── index.ts v       # TypeScript-типы (Survey, Question, Segment, Option)
 │       │
 │       ├── pages/             # Страницы
-│       │   ├── SurveyPage.tsx             # Публичная страница опроса
-│       │   ├── SurveysList.tsx            # Админка: список опросов
-│       │   └── QuestionsLibraryPage.tsx   # Админка: библиотека вопросов
+│       │   ├── SurveyPage.tsx     v        # Публичная страница опроса
+│       │   ├── SurveysList.tsx     v       # Админка: список опросов
+│       │   └── QuestionsLibraryPage.tsx v  # Админка: библиотека вопросов
 │       │
 │       ├── components/
 │       │   ├── common/        # Переиспользуемые UI-компоненты
-│       │   │   ├── Button.tsx
-│       │   │   ├── Input.tsx
-│       │   │   ├── Modal.tsx
-│       │   │   └── Table.tsx
+│       │   │   ├── Button.tsx v
+│       │   │   ├── Input.tsx v
+│       │   │   ├── Modal.tsx v
+│       │   │   └── Table.tsx v
 │       │   │
 │       │   ├── SurveyFrontend/ # Компоненты публичной части
-│       │   │   ├── SurveyWrapper.tsx   # Контейнер опроса (вопросы, навигация)
-│       │   │   ├── QuestionSlide.tsx   # Отображение одного вопроса
-│       │   │   ├── ProgressBar.tsx     # Прогресс-бар
-│       │   │   ├── OptionsList.tsx     # Список вариантов ответа
-│       │   │   ├── ResultsView.tsx     # Отображение результатов
-│       │   │   ├── ChartView.tsx       # График (polarArea, radar, doughnut, bar)
-│       │   │   └── EmailForm.tsx       # Форма для сохранения email
+│       │   │   ├── SurveyWrapper.tsx v  # Контейнер опроса (вопросы, навигация)
+│       │   │   ├── QuestionSlide.tsx v  # Отображение одного вопроса
+│       │   │   ├── ProgressBar.tsx   v  # Прогресс-бар
+│       │   │   ├── OptionsList.tsx   v  # Список вариантов ответа
+│       │   │   ├── ResultsView.tsx  v   # Отображение результатов
+│       │   │   ├── ChartView.tsx v      # График (polarArea, radar, doughnut, bar)
+│       │   │   └── EmailForm.tsx  v     # Форма для сохранения email
 │       │   │
 │       │   └── SurveyBuilder/ # Компоненты редактора опросов (админка)
-│       │       ├── SurveyEditor.tsx      # Главный компонент редактора
-│       │       ├── SegmentsPanel.tsx     # Панель управления сегментами
-│       │       ├── QuestionsLibrary.tsx  # Библиотека вопросов (в редакторе)
-│       │       ├── QuestionsCanvas.tsx   # Холст для drag-n-drop вопросов
-│       │       └── QuestionEditor.tsx    # Редактор вопроса (внутри SurveyEditor)
+│       │       ├── SurveyEditor.tsx  v    # Главный компонент редактора
+│       │       ├── SegmentsPanel.tsx v    # Панель управления сегментами
+│       │       ├── QuestionsLibrary.tsx v # Библиотека вопросов (в редакторе)
+│       │       ├── QuestionsCanvas.tsx  v # Холст для drag-n-drop вопросов
+│       │       └── QuestionEditor.tsx v   # Редактор вопроса (внутри SurveyEditor)
 │       │
 │       ├── services/
-│       │   └── api.ts         # Клиент для REST API
+│       │   └── api.ts    v     # Клиент для REST API
 │       │
 │       └── styles/
-│           └── global.css     # Все стили (админка + фронтенд)
+│           └── global.css   v  # Все стили (админка + фронтенд)
 │
-├── vendor/                    # Composer-зависимости
-├── .gitignore                 # Исключения для Git
+├── vendor/      v              # Composer-зависимости
+├── .gitignore   v              # Исключения для Git
 └── LICENSE                    # Лицензия GPL v2

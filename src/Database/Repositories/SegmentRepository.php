@@ -44,6 +44,18 @@ final class SegmentRepository
         return $row ? Segment::fromArray($row) : null;
     }
     
+    public function findAll(): array
+    {
+        global $wpdb;
+        
+        $rows = $wpdb->get_results(
+            "SELECT * FROM {$this->table} WHERE is_active = 1 ORDER BY name ASC",
+            ARRAY_A
+        );
+        
+        return array_map([Segment::class, 'fromArray'], $rows ?: []);
+    }
+
     public function create(array $data): ?Segment
     {
         global $wpdb;
