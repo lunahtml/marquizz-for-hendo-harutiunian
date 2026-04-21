@@ -63,6 +63,7 @@ survey-sphere/
 │   │   │
 │   │   ├── API/               # REST API для React-админки и фронтенда
 │   │   │   └── Controllers/
+│   │   │       ├── RestAnalyticsController.php    v     # /
 │   │   │       ├── RestRecommendationController.php     v     # /
 │   │   │       ├── RestSurveyController.php     v     # /surveys
 │   │   │       ├── RestSegmentController.php     v    # /segments
@@ -74,6 +75,8 @@ survey-sphere/
 │   │   │   └── AdminAssets.php v
 │   │   │
 │   │   └── Views/             # PHP-шаблоны (контейнеры для React)
+│   │       ├── analytics/
+│   │           ├── dashboard.php v
 │   │       ├── questions/
 │   │       │   └── library.php   v     # Страница библиотеки вопросов
 │   │       └── surveys/
@@ -121,6 +124,7 @@ survey-sphere/
 │       │   └── index.ts v       # TypeScript-типы (Survey, Question, Segment, Option)
 │       │
 │       ├── pages/             # Страницы
+│       │   ├── AnalyticsDashboard.tsx    v        # 
 │       │   ├── SurveyPage.tsx     v        # Публичная страница опроса
 │       │   ├── SurveysList.tsx     v       # Админка: список опросов
 │       │   └── QuestionsLibraryPage.tsx v  # Админка: библиотека вопросов

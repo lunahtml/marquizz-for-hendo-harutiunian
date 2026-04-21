@@ -8,10 +8,13 @@ class AdminAssets
 {
     public static function enqueue(string $hook): void
     {
-        $asset_file = include(SURVEY_SPHERE_PATH . 'react-src/build/index.asset.php');
+        // Подключаем React для ВСЕХ страниц плагина
+        $isPluginPage = strpos($hook, 'survey-sphere') !== false 
+                     || strpos($hook, 'toplevel_page_survey-sphere') !== false;
         
-        // Все страницы плагина (главная, редактирование, вопросы)
-        if (strpos($hook, 'survey-sphere') !== false) {
+        if ($isPluginPage) {
+            $asset_file = include(SURVEY_SPHERE_PATH . 'react-src/build/index.asset.php');
+            
             wp_enqueue_script(
                 'survey-sphere-react',
                 SURVEY_SPHERE_URL . 'react-src/build/index.js',

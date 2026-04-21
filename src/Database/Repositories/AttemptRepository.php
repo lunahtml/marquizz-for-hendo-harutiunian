@@ -52,6 +52,19 @@ final class AttemptRepository
         return $row ? Attempt::fromArray($row) : null;
     }
     
+    public function findByPublicId(string $publicId): ?Attempt
+    {
+        global $wpdb;
+        
+        $row = $wpdb->get_row(
+            $wpdb->prepare("SELECT * FROM {$this->table} WHERE public_id = %s", $publicId),
+            ARRAY_A
+        );
+        
+        return $row ? Attempt::fromArray($row) : null;
+    }
+
+
     private function generateNanoid(int $size = 21): string
     {
         $alphabet = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';

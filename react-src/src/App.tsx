@@ -3,25 +3,20 @@ import React from 'react';
 import SurveyEditor from './components/SurveyBuilder/SurveyEditor';
 import QuestionsLibraryPage from './pages/QuestionsLibraryPage';
 import SurveysList from './pages/SurveysList';
+import AnalyticsDashboard from './pages/AnalyticsDashboard';
 
 const App: React.FC = () => {
-    // Определяем, какой контейнер присутствует на странице
+    const currentPath = window.location.pathname + window.location.search;
     const isEditor = document.getElementById('survey-sphere-editor');
     const isQuestionsRoot = document.getElementById('survey-sphere-questions-root');
+    const isAnalytics = document.getElementById('survey-sphere-analytics-root');
 
-    console.log('App rendering:', { isEditor: !!isEditor, isQuestionsRoot: !!isQuestionsRoot });
+    console.log('App rendering:', { isEditor: !!isEditor, isQuestionsRoot: !!isQuestionsRoot, isAnalytics: !!isAnalytics });
 
-    // Редактор опроса
-    if (isEditor) {
-        return <SurveyEditor />;
-    }
+    if (isEditor) return <SurveyEditor />;
+    if (isQuestionsRoot) return <QuestionsLibraryPage />;
+    if (isAnalytics) return <AnalyticsDashboard />;
 
-    // Библиотека вопросов
-    if (isQuestionsRoot) {
-        return <QuestionsLibraryPage />;
-    }
-
-    // По умолчанию — список опросов (главная страница плагина)
     return <SurveysList />;
 };
 

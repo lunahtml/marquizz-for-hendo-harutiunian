@@ -51,6 +51,16 @@ final class AdminMenu
             [new SurveyController(), 'create']
         );
         
+// Analytics
+add_submenu_page(
+    'survey-sphere',
+    __('Analytics', 'survey-sphere'),
+    __('Analytics', 'survey-sphere'),
+    'manage_survey_sphere',
+    'survey-sphere-analytics',
+    [$this, 'renderAnalytics']
+);
+
         // Settings
 // Questions Library (показывается в меню)
 add_submenu_page(
@@ -85,5 +95,8 @@ add_submenu_page(
     {
         echo '<div class="wrap"><h1>Settings</h1><p>Settings page coming soon.</p></div>';
     }
-    
+    public function renderAnalytics(): void
+{
+    include SURVEY_SPHERE_PATH . 'src/Admin/Views/analytics/dashboard.php';
+}
 }
