@@ -61,11 +61,12 @@ final class QuestionRepository
                 'public_id' => $data['public_id'],
                 'segment_id' => isset($data['segment_id']) ? (int) $data['segment_id'] : null,
                 'text' => sanitize_textarea_field($data['text']),
+                'type' => sanitize_text_field($data['type'] ?? 'radio'),
                 'order_index' => (int) ($data['order_index'] ?? 0),
                 'is_required' => (int) ($data['is_required'] ?? 1),
                 'is_active' => (int) ($data['is_active'] ?? 1),
             ],
-            ['%s', '%d', '%s', '%d', '%d', '%d']
+            ['%s', '%d', '%s', '%s', '%d', '%d', '%d']
         );
         
         if ($result === false) {
@@ -144,29 +145,34 @@ final class QuestionRepository
     }
 
     public function update(int $id, array $data): bool
-{
-    global $wpdb;
-    
-    $updateData = [];
-    $formats = [];
-    
-    if (isset($data['text'])) {
-        $updateData['text'] = sanitize_textarea_field($data['text']);
-        $formats[] = '%s';
+    {
+        global $wpdb;
+        
+        $updateData = [];
+        $formats = [];
+        
+        if (isset($data['text'])) {
+            $updateData['text'] = sanitize_textarea_field($data['text']);
+            $formats[] = '%s';
+        }
+        
+        if (isset($data['type'])) {
+            $updateData['type'] = sanitize_text_field($data['type']);
+            $formats[] = '%s';
+        }
+        
+        if (empty($updateData)) {
+            return false;
+        }
+        
+        $result = $wpdb->update(
+            $this->table,
+            $updateData,
+            ['id' => $id],
+            $formats,
+            ['%d']
+        );
+        
+        return $result !== false;
     }
-    
-    if (empty($updateData)) {
-        return false;
-    }
-    
-    $result = $wpdb->update(
-        $this->table,
-        $updateData,
-        ['id' => $id],
-        $formats,
-        ['%d']
-    );
-    
-    return $result !== false;
-}
 }

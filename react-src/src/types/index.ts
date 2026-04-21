@@ -20,6 +20,7 @@ export interface Segment {
 export interface Question {
     id: string;
     text: string;
+    type: 'radio' | 'checkbox' | 'true_false' | 'text' | 'rating';
     options: Option[];
     segmentId?: string | null;
     segmentName?: string | null;

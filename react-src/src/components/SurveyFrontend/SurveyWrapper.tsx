@@ -18,14 +18,13 @@ interface Props {
 
 const SurveyWrapper: React.FC<Props> = ({ surveyId, surveyData }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [answers, setAnswers] = useState<Record<string, string>>({});
+    const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
     const [isCompleted, setIsCompleted] = useState(false);
     const [showResults, setShowResults] = useState(false);
 
     const questions = surveyData.questions;
     const totalQuestions = questions.length;
 
-    // Загружаем сохранённые ответы из localStorage
     useEffect(() => {
         try {
             const saved = localStorage.getItem(`survey_${surveyId}`);
@@ -44,8 +43,8 @@ const SurveyWrapper: React.FC<Props> = ({ surveyId, surveyData }) => {
         }
     }, [surveyId]);
 
-    const handleAnswer = (questionId: string, optionId: string) => {
-        setAnswers(prev => ({ ...prev, [questionId]: optionId }));
+    const handleAnswer = (questionId: string, value: string | string[]) => {
+        setAnswers(prev => ({ ...prev, [questionId]: value }));
     };
 
     const handleNext = () => {
@@ -61,14 +60,19 @@ const SurveyWrapper: React.FC<Props> = ({ surveyId, surveyData }) => {
     };
 
     const handleSubmit = () => {
-        // Проверяем, все ли вопросы отвечены
-        const allAnswered = questions.every(q => answers[q.id]);
+        const allAnswered = questions.every(q => {
+            const answer = answers[q.id];
+            if (q.type === 'checkbox') {
+                return Array.isArray(answer) && answer.length > 0;
+            }
+            return !!answer;
+        });
+
         if (!allAnswered) {
             alert('Please answer all questions');
             return;
         }
 
-        // Сохраняем в localStorage
         localStorage.setItem(`survey_${surveyId}`, JSON.stringify({
             answers,
             completed: true,
@@ -92,7 +96,7 @@ const SurveyWrapper: React.FC<Props> = ({ surveyId, surveyData }) => {
             <ResultsView
                 surveyId={surveyId}
                 questions={questions}
-                answers={answers}
+                answers={answers as Record<string, string>}
                 segments={surveyData.segments}
                 chartType={surveyData.survey.chartType}
                 onRestart={handleRestart}
@@ -117,32 +121,22 @@ const SurveyWrapper: React.FC<Props> = ({ surveyId, surveyData }) => {
 
             <QuestionSlide
                 question={currentQuestion}
-                selectedOptionId={answers[currentQuestion.id] || null}
+                selectedOptionId={typeof answers[currentQuestion.id] === 'string' ? answers[currentQuestion.id] as string : null}
+                selectedOptionIds={Array.isArray(answers[currentQuestion.id]) ? answers[currentQuestion.id] as string[] : []}
                 onAnswer={handleAnswer}
             />
 
             <div className="survey-navigation">
-                <button
-                    className="button prev-btn"
-                    onClick={handlePrev}
-                    disabled={currentIndex === 0}
-                >
+                <button className="button prev-btn" onClick={handlePrev} disabled={currentIndex === 0}>
                     Previous
                 </button>
 
                 {currentIndex === totalQuestions - 1 ? (
-                    <button
-                        className="button button-primary submit-btn"
-                        onClick={handleSubmit}
-                    >
+                    <button className="button button-primary submit-btn" onClick={handleSubmit}>
                         Show Results
                     </button>
                 ) : (
-                    <button
-                        className="button next-btn"
-                        onClick={handleNext}
-                        disabled={!answers[currentQuestion.id]}
-                    >
+                    <button className="button next-btn" onClick={handleNext}>
                         Next
                     </button>
                 )}

@@ -184,13 +184,14 @@ final class RestQuestionController extends WP_REST_Controller
     public function create_item($request): WP_REST_Response|WP_Error
     {
         $text = sanitize_textarea_field($request->get_param('text') ?? '');
+        $type = sanitize_text_field($request->get_param('type') ?? 'radio');
         
         if (empty($text)) {
             return new WP_Error('missing_text', 'Question text is required', ['status' => 400]);
         }
         
         $questionRepo = new QuestionRepository();
-        $question = $questionRepo->create(['text' => $text]);
+        $question = $questionRepo->create(['text' => $text, 'type' => $type]);
         
         if (!$question) {
             return new WP_Error('create_failed', 'Failed to create question', ['status' => 500]);
@@ -201,6 +202,7 @@ final class RestQuestionController extends WP_REST_Controller
             'question' => [
                 'id' => $question->publicId,
                 'text' => $question->text,
+                'type' => $question->type,
                 'options' => []
             ]
         ], 201);
@@ -215,6 +217,7 @@ final class RestQuestionController extends WP_REST_Controller
     {
         $questionPublicId = $request->get_param('id');
         $text = $request->get_param('text');
+        $type = $request->get_param('type');  // ← ДОБАВИТЬ
         
         $questionRepo = new QuestionRepository();
         $question = $questionRepo->findByPublicId($questionPublicId);
@@ -223,8 +226,16 @@ final class RestQuestionController extends WP_REST_Controller
             return new WP_Error('question_not_found', 'Question not found', ['status' => 404]);
         }
         
+        $updateData = [];
         if ($text !== null) {
-            $questionRepo->update($question->id, ['text' => sanitize_textarea_field($text)]);
+            $updateData['text'] = sanitize_textarea_field($text);
+        }
+        if ($type !== null) {
+            $updateData['type'] = sanitize_text_field($type);
+        }
+        
+        if (!empty($updateData)) {
+            $questionRepo->update($question->id, $updateData);
         }
         
         return new WP_REST_Response(['message' => 'Question updated'], 200);

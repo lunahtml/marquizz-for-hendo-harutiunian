@@ -110,24 +110,27 @@ const SurveyEditor: React.FC = () => {
 
     const handleSaveQuestion = async (question: Question) => {
         try {
-            // Сохраняем текст вопроса
+            // Сохраняем текст вопроса И ТИП
             await fetch(`/chess/wp-json/survey-sphere/v1/questions/${question.id}`, {
                 method: 'PUT',
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: question.text })
+                body: JSON.stringify({
+                    text: question.text,
+                    type: question.type   // ← ДОБАВИТЬ type
+                })
             });
 
             // Сохраняем варианты ответов
             for (const opt of question.options) {
-                if (opt.id) {
+                if (opt.id && !opt.id.startsWith('rating-') && opt.id !== 'true' && opt.id !== 'false') {
                     await fetch(`/chess/wp-json/survey-sphere/v1/options/${opt.id}`, {
                         method: 'PUT',
                         credentials: 'same-origin',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ text: opt.text, score: opt.score })
                     });
-                } else {
+                } else if (!opt.id || opt.id.startsWith('rating-') || opt.id === 'true' || opt.id === 'false') {
                     const response = await fetch(`/chess/wp-json/survey-sphere/v1/questions/${question.id}/options`, {
                         method: 'POST',
                         credentials: 'same-origin',
@@ -199,7 +202,6 @@ const SurveyEditor: React.FC = () => {
     );
 };
 
-// Компонент редактора вопроса
 const QuestionEditor: React.FC<{
     question: Question;
     onSave: (q: Question) => void;
@@ -207,9 +209,34 @@ const QuestionEditor: React.FC<{
 }> = ({ question, onSave, onClose }) => {
     const [text, setText] = useState(question.text);
     const [options, setOptions] = useState(question.options || []);
+    const [localType, setLocalType] = useState<Question['type']>(question.type || 'radio');
+
+    const handleTypeChange = (newType: Question['type']) => {
+        setLocalType(newType);
+        let newOptions = [...options];
+
+        if (newType === 'true_false') {
+            newOptions = [
+                { id: 'true', text: 'Да', score: 100 },
+                { id: 'false', text: 'Нет', score: 0 }
+            ];
+        } else if (newType === 'rating') {
+            newOptions = [1, 2, 3, 4, 5].map(v => ({
+                id: `rating-${v}`,
+                text: String(v),
+                score: v * 20
+            }));
+        } else if (newType === 'text') {
+            newOptions = [];
+        }
+
+        setOptions(newOptions);
+    };
 
     const addOption = () => {
-        setOptions([...options, { id: '', text: '', score: 0 }]);
+        if (localType === 'radio' || localType === 'checkbox') {
+            setOptions([...options, { id: '', text: '', score: 0 }]);
+        }
     };
 
     const updateOption = (index: number, field: string, value: string | number) => {
@@ -222,40 +249,60 @@ const QuestionEditor: React.FC<{
         setOptions(options.filter((_, i) => i !== index));
     };
 
+    const handleSave = () => {
+        onSave({ ...question, text, type: localType, options });
+    };
+
+    const showOptionsEditor = localType === 'radio' || localType === 'checkbox';
+
     return (
         <div className="question-editor-overlay" onClick={onClose}>
             <div className="question-editor-modal" onClick={e => e.stopPropagation()}>
                 <h3>Edit Question</h3>
 
+                <div className="question-type-selector">
+                    <label>Question Type</label>
+                    <select value={localType} onChange={(e) => handleTypeChange(e.target.value as Question['type'])}>
+                        <option value="radio">Одиночный выбор</option>
+                        <option value="checkbox">Множественный выбор</option>
+                        <option value="true_false">Да/Нет</option>
+                        <option value="text">Текстовый ответ</option>
+                        <option value="rating">Оценка 1-5</option>
+                    </select>
+                </div>
+
                 <label>Question Text</label>
                 <textarea value={text} onChange={e => setText(e.target.value)} />
 
-                <label>Options</label>
-                <div className="options-list">
-                    {options.map((opt, i) => (
-                        <div key={i} className="option-row">
-                            <input
-                                type="text"
-                                value={opt.text}
-                                placeholder="Option text"
-                                onChange={e => updateOption(i, 'text', e.target.value)}
-                            />
-                            <input
-                                type="number"
-                                value={opt.score}
-                                placeholder="Score"
-                                step="0.1"
-                                onChange={e => updateOption(i, 'score', parseFloat(e.target.value))}
-                            />
-                            <button onClick={() => removeOption(i)}>✕</button>
+                {showOptionsEditor && (
+                    <>
+                        <label>Options</label>
+                        <div className="options-list">
+                            {options.map((opt, i) => (
+                                <div key={i} className="option-row">
+                                    <input
+                                        type="text"
+                                        value={opt.text}
+                                        placeholder="Option text"
+                                        onChange={e => updateOption(i, 'text', e.target.value)}
+                                    />
+                                    <input
+                                        type="number"
+                                        value={opt.score}
+                                        placeholder="Score"
+                                        step="0.1"
+                                        onChange={e => updateOption(i, 'score', parseFloat(e.target.value))}
+                                    />
+                                    <button onClick={() => removeOption(i)}>✕</button>
+                                </div>
+                            ))}
                         </div>
-                    ))}
-                </div>
-
-                <button className="add-option-btn" onClick={addOption}>+ Add Option</button>
+                        <button className="add-option-btn" onClick={addOption}>+ Add Option</button>
+                    </>
+                )}
 
                 <div className="modal-actions">
-                    <button className="button button-primary" onClick={() => onSave({ ...question, text, options })}>
+                    <button className="button button-primary" onClick={handleSave}>
                         Save
                     </button>
                     <button className="button" onClick={onClose}>Cancel</button>

@@ -36,22 +36,50 @@ const ResultsView: React.FC<Props> = ({
         });
         scores['uncategorized'] = { total: 0, count: 0, maxPossible: 0 };
 
+        // В calculateSegmentScores:
         questions.forEach(question => {
-            const answerId = answers[question.id];
-            if (answerId) {
-                const option = question.options.find(opt => opt.id === answerId);
-                if (option) {
-                    const segmentId = question.segmentId || 'uncategorized';
-                    if (scores[segmentId]) {
-                        scores[segmentId].total += option.score;
-                        scores[segmentId].count += 1;
-                        // Максимально возможный балл для этого вопроса
-                        const maxScore = Math.max(...question.options.map(o => o.score));
-                        scores[segmentId].maxPossible += maxScore;
-                    }
-                }
+            const answer = answers[question.id];
+            if (!answer) return;
+
+            const segmentId = question.segmentId || 'uncategorized';
+            if (!scores[segmentId]) return;
+
+            let score = 0;
+            let maxScore = 0;
+
+            switch (question.type) {
+                case 'radio':
+                    const option = question.options.find(opt => opt.id === answer);
+                    score = option?.score || 0;
+                    maxScore = Math.max(...question.options.map(o => o.score));
+                    break;
+
+                case 'checkbox':
+                    const selectedIds = Array.isArray(answer) ? answer : [answer as string];
+                    score = selectedIds.reduce((sum, id) => {
+                        const opt = question.options.find(o => o.id === id);
+                        return sum + (opt?.score || 0);
+                    }, 0);
+                    maxScore = question.options.reduce((sum, o) => sum + o.score, 0);
+                    break;
+
+                case 'true_false':
+                    score = answer === 'true' ? 100 : 0;
+                    maxScore = 100;
+                    break;
+
+                case 'rating':
+                    score = parseInt(answer as string) * 20;
+                    maxScore = 100;
+                    break;
+
+                case 'text':
+                    return;
             }
 
+            scores[segmentId].total += score;
+            scores[segmentId].maxPossible += maxScore;
+            scores[segmentId].count += 1;
         });
 
         return scores;

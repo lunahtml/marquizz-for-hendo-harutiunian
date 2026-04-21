@@ -25,6 +25,7 @@ final class QuestionTable
             public_id VARCHAR(21) NOT NULL UNIQUE,
             segment_id BIGINT UNSIGNED NULL,
             text TEXT NOT NULL,
+            type ENUM('radio', 'checkbox', 'true_false', 'text', 'rating') DEFAULT 'radio',
             order_index INT UNSIGNED DEFAULT 0,
             is_required TINYINT(1) DEFAULT 1,
             is_active TINYINT(1) DEFAULT 1,
