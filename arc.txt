@@ -22,6 +22,7 @@ survey-sphere/
 │   │   │   ├── AnswerTable.php v       # Таблица ответов пользователей
 │   │   │   ├── SurveyQuestionTable.php v # Связь многие-ко-многим: опросы ↔ вопросы
 │   │   │   └── RespondentTable.php  v  # Таблица респондентов
+│   │   │   └── RecommendationTable.php  v  # Таблица 
 │   │   │
 │   │   ├── Models/            # DTO для работы с данными
 │   │   │   ├── Survey.php v
@@ -31,6 +32,7 @@ survey-sphere/
 │   │   │   ├── Attempt.php v
 │   │   │   ├── Answer.php v
 │   │   │   └── Respondent.php v
+│   │   │   └── Recommendation.php v
 │   │   │
 │   │   └── Repositories/      # Слой доступа к данным (CRUD)
 │   │       ├── SurveyRepository.php v
@@ -41,6 +43,7 @@ survey-sphere/
 │   │       ├── AnswerRepository.php v
 │   │       ├── SurveyQuestionRepository.php  v # Работа со связями опрос-вопрос
 │   │       └── RespondentRepository.php v
+│   │       └── RecommendationRepository.php v
 │   │
 │   ├── Admin/                 # Административная часть
 │   │   ├── AJAX/              # Обработчики WP AJAX (для обратной совместимости)
@@ -60,6 +63,7 @@ survey-sphere/
 │   │   │
 │   │   ├── API/               # REST API для React-админки и фронтенда
 │   │   │   └── Controllers/
+│   │   │       ├── RestRecommendationController.php     v     # /
 │   │   │       ├── RestSurveyController.php     v     # /surveys
 │   │   │       ├── RestSegmentController.php     v    # /segments
 │   │   │       ├── RestQuestionController.php    v   # /questions
@@ -143,6 +147,7 @@ survey-sphere/
 │       │       ├── QuestionsLibrary.tsx v # Библиотека вопросов (в редакторе)
 │       │       ├── QuestionsCanvas.tsx  v # Холст для drag-n-drop вопросов
 │       │       └── QuestionEditor.tsx v   # Редактор вопроса (внутри SurveyEditor)
+│       │       └── RecommendationsPanel.tsx v   # 
 │       │
 │       ├── services/
 │       │   └── api.ts    v     # Клиент для REST API

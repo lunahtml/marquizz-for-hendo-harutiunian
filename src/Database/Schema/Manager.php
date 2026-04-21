@@ -20,6 +20,7 @@ final class Manager
         AttemptTable::create();
         AnswerTable::create();
         SurveyQuestionTable::create(); 
+        RecommendationTable::create();
         
         add_option('survey_sphere_db_version', self::VERSION);
     }

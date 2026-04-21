@@ -2,7 +2,12 @@
 * {
     box-sizing: border-box;
 }
-
+button {
+    border: #16a34a;
+    color: #4f46e5;
+    background-color: #8b5cf6;
+    padding: 5px;
+}
 .survey-sphere-app {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: #f5f7fa;
@@ -886,9 +891,220 @@
     color: #64748b;
     font-size: 14px;
 }
-button {
-    border: #16a34a;
-    color: #4f46e5;
-    background-color: #8b5cf6;
-    padding: 5px;
+
+
+/* Recommendations Panel */
+.recommendations-panel {
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+}
+
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.panel-header h3 {
+    margin: 0;
+    font-size: 18px;
+}
+
+.filter-bar {
+    margin-bottom: 20px;
+}
+
+.filter-bar select {
+    padding: 8px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    min-width: 200px;
+}
+
+.recommendation-form {
+    background: #f8fafc;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.recommendation-form h4 {
+    margin: 0 0 16px 0;
+}
+
+.recommendation-form label {
+    display: block;
+    margin: 12px 0 4px;
+    font-weight: 500;
+    font-size: 13px;
+    color: #475569;
+}
+
+.recommendation-form input,
+.recommendation-form select,
+.recommendation-form textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: border-color 0.2s;
+}
+
+.recommendation-form input:focus,
+.recommendation-form select:focus,
+.recommendation-form textarea:focus {
+    outline: none;
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.score-range {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.score-range input {
+    width: 80px;
+    text-align: center;
+}
+
+.score-range span {
+    color: #64748b;
+}
+
+.form-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.recommendations-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.recommendation-item {
+    background: #f8fafc;
+    border-left: 4px solid;
+    border-radius: 6px;
+    padding: 16px;
+}
+
+.item-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.score-badge {
+    background: #e2e8f0;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #475569;
+}
+
+.item-header strong {
+    flex: 1;
+    font-size: 16px;
+}
+
+.item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.item-description {
+    margin: 8px 0;
+    color: #475569;
+    font-size: 14px;
+}
+
+.item-action {
+    display: inline-block;
+    color: #6366f1;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.no-items {
+    text-align: center;
+    padding: 40px;
+    color: #94a3b8;
+}
+
+.button-danger {
+    background: #fff;
+    border-color: #fecaca;
+    color: #dc2626;
+}
+
+.button-danger:hover {
+    background: #fef2f2;
+}
+
+/* Tabs */
+.editor-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0;
+}
+
+.editor-tabs button {
+    padding: 12px 24px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    color: #64748b;
+    transition: all 0.2s;
+}
+
+.editor-tabs button:hover {
+    color: #6366f1;
+}
+
+.editor-tabs button.active {
+    color: #6366f1;
+    border-bottom-color: #6366f1;
+}
+
+/* Recommendation box in results */
+.recommendation-box {
+    background: #f8fafc;
+    border-left: 4px solid;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.recommendation-box h4 {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+}
+
+.recommendation-box p {
+    margin: 0 0 15px 0;
+    color: #475569;
+}
+
+.recommendation-box .button {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #6366f1;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-weight: 500;
 }

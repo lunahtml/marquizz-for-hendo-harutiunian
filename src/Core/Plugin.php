@@ -82,6 +82,9 @@ final class Plugin
 
         $optionController = new \SurveySphere\Admin\API\Controllers\RestOptionController();
         $optionController->register_routes();
+
+        $recommendationController = new \SurveySphere\Admin\API\Controllers\RestRecommendationController();
+        $recommendationController->register_routes();
     }
     public function init(): void
     {

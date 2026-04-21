@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import SegmentsPanel from './SegmentsPanel';
 import QuestionsLibrary from './QuestionsLibrary';
 import QuestionsCanvas from './QuestionsCanvas';
+import RecommendationsPanel from './RecommendationsPanel';
 import type { Segment, Question } from '../../types';
 
 const SurveyEditor: React.FC = () => {
@@ -11,6 +12,7 @@ const SurveyEditor: React.FC = () => {
     const [surveyQuestions, setSurveyQuestions] = useState<Question[]>([]);
     const [chartType, setChartType] = useState<string>('polarArea');
     const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+    const [activeTab, setActiveTab] = useState<'questions' | 'recommendations'>('questions');
 
     useEffect(() => {
         loadSurvey();
@@ -55,7 +57,6 @@ const SurveyEditor: React.FC = () => {
     };
 
     const handleChartTypeChange = async (newType: string) => {
-        console.log('Changing chart type to:', newType, 'surveyId:', surveyId);
         try {
             const response = await fetch(`/chess/wp-json/survey-sphere/v1/surveys/${surveyId}`, {
                 method: 'PUT',
@@ -110,18 +111,13 @@ const SurveyEditor: React.FC = () => {
 
     const handleSaveQuestion = async (question: Question) => {
         try {
-            // Сохраняем текст вопроса И ТИП
             await fetch(`/chess/wp-json/survey-sphere/v1/questions/${question.id}`, {
                 method: 'PUT',
                 credentials: 'same-origin',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    text: question.text,
-                    type: question.type   // ← ДОБАВИТЬ type
-                })
+                body: JSON.stringify({ text: question.text, type: question.type })
             });
 
-            // Сохраняем варианты ответов
             for (const opt of question.options) {
                 if (opt.id && !opt.id.startsWith('rating-') && opt.id !== 'true' && opt.id !== 'false') {
                     await fetch(`/chess/wp-json/survey-sphere/v1/options/${opt.id}`, {
@@ -142,9 +138,7 @@ const SurveyEditor: React.FC = () => {
                 }
             }
 
-            setSurveyQuestions(prev =>
-                prev.map(q => q.id === question.id ? question : q)
-            );
+            setSurveyQuestions(prev => prev.map(q => q.id === question.id ? question : q));
             setEditingQuestion(null);
         } catch (error) {
             console.error('Failed to save question:', error);
@@ -167,29 +161,37 @@ const SurveyEditor: React.FC = () => {
                 </select>
             </div>
 
-            <div className="editor-layout">
-                <div className="editor-sidebar">
-                    <SegmentsPanel
-                        surveyId={surveyId}
-                        segments={segments}
-                        onSegmentsChange={setSegments}
-                    />
-                </div>
-
-                <div className="editor-main">
-                    <QuestionsLibrary
-                        surveyId={surveyId}
-                        onAddQuestion={handleAddQuestion}
-                    />
-
-                    <QuestionsCanvas
-                        segments={segments}
-                        surveyQuestions={surveyQuestions}
-                        onDropQuestion={handleDropQuestion}
-                        onEditQuestion={setEditingQuestion}
-                    />
-                </div>
+            <div className="editor-tabs">
+                <button className={activeTab === 'questions' ? 'active' : ''} onClick={() => setActiveTab('questions')}>
+                    Questions
+                </button>
+                <button className={activeTab === 'recommendations' ? 'active' : ''} onClick={() => setActiveTab('recommendations')}>
+                    Recommendations
+                </button>
             </div>
+
+            {activeTab === 'questions' ? (
+                <div className="editor-layout">
+                    <div className="editor-sidebar">
+                        <SegmentsPanel
+                            surveyId={surveyId}
+                            segments={segments}
+                            onSegmentsChange={setSegments}
+                        />
+                    </div>
+                    <div className="editor-main">
+                        <QuestionsLibrary surveyId={surveyId} onAddQuestion={handleAddQuestion} />
+                        <QuestionsCanvas
+                            segments={segments}
+                            surveyQuestions={surveyQuestions}
+                            onDropQuestion={handleDropQuestion}
+                            onEditQuestion={setEditingQuestion}
+                        />
+                    </div>
+                </div>
+            ) : (
+                <RecommendationsPanel surveyId={surveyId} segments={segments} />
+            )}
 
             {editingQuestion && (
                 <QuestionEditor
@@ -214,7 +216,6 @@ const QuestionEditor: React.FC<{
     const handleTypeChange = (newType: Question['type']) => {
         setLocalType(newType);
         let newOptions = [...options];
-
         if (newType === 'true_false') {
             newOptions = [
                 { id: 'true', text: 'Да', score: 100 },
@@ -229,7 +230,6 @@ const QuestionEditor: React.FC<{
         } else if (newType === 'text') {
             newOptions = [];
         }
-
         setOptions(newOptions);
     };
 
@@ -280,19 +280,10 @@ const QuestionEditor: React.FC<{
                         <div className="options-list">
                             {options.map((opt, i) => (
                                 <div key={i} className="option-row">
-                                    <input
-                                        type="text"
-                                        value={opt.text}
-                                        placeholder="Option text"
-                                        onChange={e => updateOption(i, 'text', e.target.value)}
-                                    />
-                                    <input
-                                        type="number"
-                                        value={opt.score}
-                                        placeholder="Score"
-                                        step="0.1"
-                                        onChange={e => updateOption(i, 'score', parseFloat(e.target.value))}
-                                    />
+                                    <input type="text" value={opt.text} placeholder="Option text"
+                                        onChange={e => updateOption(i, 'text', e.target.value)} />
+                                    <input type="number" value={opt.score} placeholder="Score" step="0.1"
+                                        onChange={e => updateOption(i, 'score', parseFloat(e.target.value))} />
                                     <button onClick={() => removeOption(i)}>✕</button>
                                 </div>
                             ))}
@@ -302,9 +293,7 @@ const QuestionEditor: React.FC<{
                 )}
 
                 <div className="modal-actions">
-                    <button className="button button-primary" onClick={handleSave}>
-                        Save
-                    </button>
+                    <button className="button button-primary" onClick={handleSave}>Save</button>
                     <button className="button" onClick={onClose}>Cancel</button>
                 </div>
             </div>
